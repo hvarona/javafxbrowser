@@ -5,11 +5,10 @@ import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import static javafx.concurrent.Worker.State.FAILED;
-import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
@@ -17,6 +16,9 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *
@@ -34,11 +36,9 @@ public class BrowserFrame extends javax.swing.JFrame {
         super();
         initComponents();
 
-        ActionListener al = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loadURL(textURL.getText());
-            }
+        ActionListener al = (ActionEvent e) -> {
+            System.out.println(e.getActionCommand());
+            loadURL(textURL.getText());
         };
         goButton.addActionListener(al);
         textURL.addActionListener(al);
@@ -138,8 +138,8 @@ public class BrowserFrame extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(backwardButton)
             .addComponent(fowardButton)
+            .addComponent(stopRefreshButton)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(stopRefreshButton)
                 .addComponent(textURL, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(goButton))
         );
@@ -171,40 +171,34 @@ public class BrowserFrame extends javax.swing.JFrame {
         final WebHistory history = engine.getHistory();
         ObservableList<WebHistory.Entry> entryList = history.getEntries();
         int currentIndex = history.getCurrentIndex();
-
-        Platform.runLater(new Runnable() {
-            public void run() {
+        if (currentIndex < entryList.size() - 1) {
+            Platform.runLater(() -> {
                 history.go(1);
-            }
-        });
+            });
+        }
     }//GEN-LAST:event_fowardButtonActionPerformed
 
     private void stopRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopRefreshButtonActionPerformed
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                if (engine.getLoadWorker().isRunning()) {
-                    engine.getLoadWorker().cancel();
-                    loadingBar.setValue(0);
-                    loadingBar.setVisible(false);
-                    enableDisableButtons();
-                } else if (!currentURL.isEmpty()) {
-                    engine.load(currentURL);
-                }
+        Platform.runLater(() -> {
+            if (engine.getLoadWorker().isRunning()) {
+                engine.getLoadWorker().cancel();
+                loadingBar.setValue(0);
+                loadingBar.setVisible(false);
+                enableDisableButtons();
+            } else if (!currentURL.isEmpty()) {
+                engine.load(currentURL);
             }
         });
     }//GEN-LAST:event_stopRefreshButtonActionPerformed
 
     private void backwardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backwardButtonActionPerformed
         final WebHistory history = engine.getHistory();
-        ObservableList<WebHistory.Entry> entryList = history.getEntries();
         int currentIndex = history.getCurrentIndex();
-
-        Platform.runLater(new Runnable() {
-            public void run() {
+        if (currentIndex > 0) {
+            Platform.runLater(() -> {
                 history.go(-1);
-            }
-        });
+            });
+        }
     }//GEN-LAST:event_backwardButtonActionPerformed
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
@@ -213,126 +207,87 @@ public class BrowserFrame extends javax.swing.JFrame {
 
     private void createScene() {
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
+        Platform.runLater(() -> {
+            WebView view = new WebView();
+            engine = view.getEngine();
 
-                WebView view = new WebView();
-                engine = view.getEngine();
+            engine.titleProperty().addListener((ObservableValue<? extends String> observable, String oldValue, final String newValue) -> {
+                SwingUtilities.invokeLater(() -> {
+                    BrowserFrame.this.setTitle(newValue);
 
-                engine.titleProperty().addListener(new ChangeListener<String>() {
-                    @Override
-                    public void changed(ObservableValue<? extends String> observable, String oldValue, final String newValue) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                BrowserFrame.this.setTitle(newValue);
-                            }
-                        });
+                });
+            });
+            
+
+            engine.setOnStatusChanged((final WebEvent<String> event) -> {
+                SwingUtilities.invokeLater(() -> {
+                    textStatus.setText(event.getData());
+                });
+            });
+
+            engine.locationProperty().addListener((ObservableValue<? extends String> ov, String oldValue, final String newValue) -> {
+                SwingUtilities.invokeLater(() -> {
+                    textURL.setText(newValue);
+                    currentURL = newValue;
+                    enableDisableButtons();
+                });
+            });
+
+            engine.getLoadWorker().workDoneProperty().addListener((ObservableValue<? extends Number> observableValue, Number oldValue, final Number newValue) -> {
+                SwingUtilities.invokeLater(() -> {
+                    if (newValue.intValue() >= 100) {
+                        loadingBar.setValue(0);
+                        loadingBar.setVisible(false);
+                        enableDisableButtons();
+                    } else {
+                        loadingBar.setValue(newValue.intValue());
+                        loadingBar.setVisible(true);
+                        enableDisableButtons();
                     }
                 });
+            });
 
-                engine.setOnStatusChanged(new EventHandler<WebEvent<String>>() {
-                    @Override
-                    public void handle(final WebEvent<String> event) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                textStatus.setText(event.getData());
-                            }
-                        });
-                    }
-                });
-
-                engine.locationProperty().addListener(new ChangeListener<String>() {
-                    @Override
-                    public void changed(ObservableValue<? extends String> ov, String oldValue, final String newValue) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                textURL.setText(newValue);
-                                currentURL = newValue;
+            engine.getLoadWorker()
+                    .exceptionProperty()
+                    .addListener((ObservableValue<? extends Throwable> o, Throwable old, final Throwable value) -> {
+                        if (engine.getLoadWorker().getState() == FAILED) {
+                            SwingUtilities.invokeLater(() -> {
+                                loadingBar.setValue(0);
+                                loadingBar.setVisible(false);
+                                textStatus.setText("Error on Page");
                                 enableDisableButtons();
-                            }
-                        });
-                    }
-                });
-
-                engine.getLoadWorker().workDoneProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, final Number newValue) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (newValue.intValue() >= 100) {
-                                    loadingBar.setValue(0);
-                                    loadingBar.setVisible(false);
-                                    enableDisableButtons();
-                                } else {
-                                    loadingBar.setValue(newValue.intValue());
-                                    loadingBar.setVisible(true);
-                                    enableDisableButtons();
-                                }
-                            }
-                        });
-                    }
-                });
-
-                engine.getLoadWorker()
-                        .exceptionProperty()
-                        .addListener(new ChangeListener<Throwable>() {
-
-                            public void changed(ObservableValue<? extends Throwable> o, Throwable old, final Throwable value) {
-                                if (engine.getLoadWorker().getState() == FAILED) {
-                                    SwingUtilities.invokeLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            loadingBar.setValue(0);
-                                            loadingBar.setVisible(false);
-                                            textStatus.setText("Error on Page");
-                                            enableDisableButtons();
-                                            JOptionPane.showMessageDialog(
-                                                    rootPane,
-                                                    (value != null)
-                                                            ? engine.getLocation() + "\n" + value.getMessage()
-                                                            : engine.getLocation() + "\nUnexpected error.",
-                                                    "Loading error...",
-                                                    JOptionPane.ERROR_MESSAGE);
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                engine.getLoadWorker().runningProperty().addListener(new ChangeListener<Boolean>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                        if (newValue) {
-                            stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/stop-icon.png"))); // NOI18N
-                            stopRefreshButton.setToolTipText("Stop");
-                        } else {
-                            stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/refresh-icon.png"))); // NOI18N
-                            stopRefreshButton.setToolTipText("Refresh");
+                                JOptionPane.showMessageDialog(
+                                        rootPane,
+                                        (value != null)
+                                                ? engine.getLocation() + "\n" + value.getMessage()
+                                                : engine.getLocation() + "\nUnexpected error.",
+                                        "Loading error...",
+                                        JOptionPane.ERROR_MESSAGE);
+                            });
                         }
-                    }
+                    });
+            engine.getLoadWorker().runningProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+                if (newValue) {
+                    stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/stop-icon.png"))); // NOI18N
+                    stopRefreshButton.setToolTipText("Stop");
+                } else {
+                    stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/refresh-icon.png"))); // NOI18N
+                    stopRefreshButton.setToolTipText("Refresh");
+                }
+            });
 
-                });
-
-                browserPanel.setScene(new Scene(view));
-            }
+            browserPanel.setScene(new Scene(view));
         });
 
     }
 
     public void loadURL(final String url) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                String tmp = toURL(url);
-                if (tmp == null) {
-                    tmp = toURL("http://" + url);
-                }
-                engine.load(tmp);
+        Platform.runLater(() -> {
+            String tmp = toURL(url);
+            if (tmp == null) {
+                tmp = toURL("http://" + url);
             }
+            engine.load(tmp);
         });
     }
 
@@ -349,18 +304,6 @@ public class BrowserFrame extends javax.swing.JFrame {
         } else {
             fowardButton.setEnabled(false);
         }
-        /*Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                if (engine.getLoadWorker().isRunning()) {
-                    stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/stop-icon.png"))); // NOI18N
-                    stopRefreshButton.setToolTipText("Stop");
-                } else {
-                    stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/refresh-icon.png"))); // NOI18N
-                    stopRefreshButton.setToolTipText("Refresh");
-                }
-            }
-        });*/
     }
 
     private static String toURL(String str) {
