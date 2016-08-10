@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package javafxbrowser.frame;
 
 import java.awt.event.ActionEvent;
@@ -10,31 +5,27 @@ import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import static javafx.concurrent.Worker.State.FAILED;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
+import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
  *
- * @author henry
+ * @author henry varona
  */
 public class BrowserFrame extends javax.swing.JFrame {
 
     private WebEngine engine;
     private String currentURL = "";
-    private String lastURL = "";
-    private String fowardURL = "";
-    private boolean isLoading = false;
-    private boolean isBrowsingHistory = false;
 
     /**
      * Creates new form MainFrame
@@ -177,25 +168,27 @@ public class BrowserFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void fowardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fowardButtonActionPerformed
-        loadFowardURL();
+        final WebHistory history = engine.getHistory();
+        ObservableList<WebHistory.Entry> entryList = history.getEntries();
+        int currentIndex = history.getCurrentIndex();
+
+        Platform.runLater(new Runnable() {
+            public void run() {
+                history.go(1);
+            }
+        });
     }//GEN-LAST:event_fowardButtonActionPerformed
 
     private void stopRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopRefreshButtonActionPerformed
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                if (isLoading) {
-                    //refresh
-                    if (engine.getLoadWorker().isRunning()) {
-                        engine.getLoadWorker().cancel();
-                        isLoading = false;
-                        isBrowsingHistory = false;
-                        loadingBar.setValue(0);
-                        loadingBar.setVisible(false);
-                        enableDisableButtons();
-                    }
+                if (engine.getLoadWorker().isRunning()) {
+                    engine.getLoadWorker().cancel();
+                    loadingBar.setValue(0);
+                    loadingBar.setVisible(false);
+                    enableDisableButtons();
                 } else if (!currentURL.isEmpty()) {
-                    isLoading = true;
                     engine.load(currentURL);
                 }
             }
@@ -203,7 +196,15 @@ public class BrowserFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_stopRefreshButtonActionPerformed
 
     private void backwardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backwardButtonActionPerformed
-        loadLastURL();
+        final WebHistory history = engine.getHistory();
+        ObservableList<WebHistory.Entry> entryList = history.getEntries();
+        int currentIndex = history.getCurrentIndex();
+
+        Platform.runLater(new Runnable() {
+            public void run() {
+                history.go(-1);
+            }
+        });
     }//GEN-LAST:event_backwardButtonActionPerformed
 
     private void goButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_goButtonActionPerformed
@@ -249,14 +250,9 @@ public class BrowserFrame extends javax.swing.JFrame {
                         SwingUtilities.invokeLater(new Runnable() {
                             @Override
                             public void run() {
-                                if (!isBrowsingHistory) {
-                                    textURL.setText(newValue);
-                                    lastURL = currentURL;
-                                    currentURL = newValue;
-                                    fowardURL = "";
-                                    isLoading = true;
-                                    enableDisableButtons();
-                                }
+                                textURL.setText(newValue);
+                                currentURL = newValue;
+                                enableDisableButtons();
                             }
                         });
                     }
@@ -269,13 +265,10 @@ public class BrowserFrame extends javax.swing.JFrame {
                             @Override
                             public void run() {
                                 if (newValue.intValue() >= 100) {
-                                    isLoading = false;
-                                    isBrowsingHistory = false;
                                     loadingBar.setValue(0);
                                     loadingBar.setVisible(false);
                                     enableDisableButtons();
                                 } else {
-                                    isLoading = true;
                                     loadingBar.setValue(newValue.intValue());
                                     loadingBar.setVisible(true);
                                     enableDisableButtons();
@@ -294,12 +287,9 @@ public class BrowserFrame extends javax.swing.JFrame {
                                     SwingUtilities.invokeLater(new Runnable() {
                                         @Override
                                         public void run() {
-                                            isLoading = false;
-                                            isBrowsingHistory = false;
                                             loadingBar.setValue(0);
                                             loadingBar.setVisible(false);
                                             textStatus.setText("Error on Page");
-
                                             enableDisableButtons();
                                             JOptionPane.showMessageDialog(
                                                     rootPane,
@@ -313,6 +303,19 @@ public class BrowserFrame extends javax.swing.JFrame {
                                 }
                             }
                         });
+                engine.getLoadWorker().runningProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                        if (newValue) {
+                            stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/stop-icon.png"))); // NOI18N
+                            stopRefreshButton.setToolTipText("Stop");
+                        } else {
+                            stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/refresh-icon.png"))); // NOI18N
+                            stopRefreshButton.setToolTipText("Refresh");
+                        }
+                    }
+
+                });
 
                 browserPanel.setScene(new Scene(view));
             }
@@ -325,64 +328,39 @@ public class BrowserFrame extends javax.swing.JFrame {
             @Override
             public void run() {
                 String tmp = toURL(url);
-
                 if (tmp == null) {
                     tmp = toURL("http://" + url);
                 }
-                isLoading = true;
                 engine.load(tmp);
             }
         });
     }
 
-    public void loadLastURL() {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                isLoading = true;
-                isBrowsingHistory = true;
-                engine.load(lastURL);
-                fowardURL = currentURL;
-                currentURL = lastURL;
-                lastURL = "";
-                enableDisableButtons();
-            }
-        });
-    }
-
-    public void loadFowardURL() {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                isLoading = true;
-                isBrowsingHistory = true;
-                engine.load(fowardURL);
-                lastURL = currentURL;
-                currentURL = fowardURL;
-                fowardURL = "";
-                enableDisableButtons();
-            }
-        });
-    }
-
     private void enableDisableButtons() {
-        if (!lastURL.isEmpty()) {
+        final WebHistory history = engine.getHistory();
+        ObservableList<WebHistory.Entry> entryList = history.getEntries();
+        if (history.getCurrentIndex() > 0) {
             backwardButton.setEnabled(true);
         } else {
             backwardButton.setEnabled(false);
         }
-        if (!fowardURL.isEmpty()) {
+        if (history.getCurrentIndex() < entryList.size() - 1) {
             fowardButton.setEnabled(true);
         } else {
             fowardButton.setEnabled(false);
         }
-        if (isLoading) {
-            stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/stop-icon.png"))); // NOI18N
-            stopRefreshButton.setToolTipText("Stop");
-        } else {
-            stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/refresh-icon.png"))); // NOI18N
-            stopRefreshButton.setToolTipText("Refresh");
-        }
+        /*Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (engine.getLoadWorker().isRunning()) {
+                    stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/stop-icon.png"))); // NOI18N
+                    stopRefreshButton.setToolTipText("Stop");
+                } else {
+                    stopRefreshButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/javafxbrowser/frame/icon/refresh-icon.png"))); // NOI18N
+                    stopRefreshButton.setToolTipText("Refresh");
+                }
+            }
+        });*/
     }
 
     private static String toURL(String str) {
