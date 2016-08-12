@@ -5,45 +5,52 @@
  */
 package javafxbrowser;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
-import javafxbrowser.frame.BrowserFrame;
-import javax.swing.JApplet;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafxbrowser.frame.BroswerFXFrame;
+import javafxbrowser.listener.BasicWebEngineChangeAction;
 
 /**
  *
  * @author henry
  */
-public class JavaFxBrowser {
+public class JavaFxBrowser extends Application {
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        BroswerFXFrame mainFrame = new BroswerFXFrame();
+        BorderPane basePane = new BorderPane();
+        basePane.setCenter(mainFrame.getRootPane(new BasicWebEngineChangeAction((String newValue) -> {
+            primaryStage.setTitle(newValue);
+        })));
+
+        Scene scene = new Scene(basePane);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        mainFrame.getEngine().load("http://www.google.com/");
+    }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            
+        /*SwingUtilities.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 try {
                     UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
                 } catch (Exception e) {
                 }
-                
+
                 BrowserFrame main = new BrowserFrame();
                 main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 main.setVisible(true);
                 main.loadURL("http://www.google.com/"); //Home Page
             }
-        });
+        });*/
+        launch(args);
     }
 }
