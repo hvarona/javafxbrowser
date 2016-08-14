@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafxbrowser.frame.BroswerFXFrame;
@@ -138,6 +139,8 @@ public class JavaFxBrowser extends Application {
         newFrame.getEngine().load(url);
     }
 
+    
+
     /**
      * @param args the command line arguments
      */
@@ -159,4 +162,6 @@ public class JavaFxBrowser extends Application {
         });*/
         launch(args);
     }
+
+    
 }

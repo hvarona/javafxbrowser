@@ -31,6 +31,7 @@ import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javafxbrowser.listener.WebEngineChangeAction;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -53,6 +54,8 @@ public class BroswerFXFrame {
     private Label textStatus;
     private TextField textURL;
     private WebEngine engine;
+
+    private String lastFindText = "";
 
     private final List<WebEngineChangeAction> changeActions = new ArrayList();
 
@@ -180,25 +183,38 @@ public class BroswerFXFrame {
                 return;
             }
         }
-        HBox hbox = new HBox();
+        HBox hbox = new HBox(5);
         hbox.setId("searchPanel");
         hbox.setMinHeight(30);
         hbox.setMaxHeight(30);
-        hbox.setMaxWidth(150);
+        hbox.setMaxWidth(260);
         hbox.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
         TextField searchText = new TextField();
         Button nextSearchButton = new Button(">");
+        nextSearchButton.setPrefSize(35, 17);
         nextSearchButton.setDisable(true);
         Button prevSearchButton = new Button("<");
+        nextSearchButton.setPrefSize(35, 17);
         prevSearchButton.setDisable(true);
         Button closSearchButton = new Button("X");
+        closSearchButton.setPrefSize(35, 17);
         searchText.setOnAction((ActionEvent evt) -> {
             if (engine.getDocument() != null) {
+                lastFindText = searchText.getText();
+                if ((boolean) engine.executeScript("window.find(\"" + lastFindText + "\")")) {
+                    nextSearchButton.setDisable(false);
+                    prevSearchButton.setDisable(false);
+                } else {
+                    nextSearchButton.setDisable(true);
+                    prevSearchButton.setDisable(true);
+                }
             }
         });
         nextSearchButton.setOnAction((ActionEvent evt) -> {
+            engine.executeScript("window.find(\"" + lastFindText + "\",false,false)");
         });
         prevSearchButton.setOnAction((ActionEvent evt) -> {
+            engine.executeScript("window.find(\"" + lastFindText + "\",false,true)");
         });
         closSearchButton.setOnAction((ActionEvent evt) -> {
             centerPane.getChildren().remove(hbox);
