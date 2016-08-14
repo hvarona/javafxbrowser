@@ -201,10 +201,11 @@ public class BroswerFXFrame {
         searchText.setOnAction((ActionEvent evt) -> {
             if (engine.getDocument() != null) {
                 lastFindText = searchText.getText();
-                if ((boolean) engine.executeScript("window.find(\"" + lastFindText + "\")")) {
+                if ((boolean) engine.executeScript("window.find(\"" + lastFindText + "\");")) {
                     nextSearchButton.setDisable(false);
                     prevSearchButton.setDisable(false);
                 } else {
+                    engine.executeScript("window.getSelection().removeAllRanges();");
                     nextSearchButton.setDisable(true);
                     prevSearchButton.setDisable(true);
                 }
