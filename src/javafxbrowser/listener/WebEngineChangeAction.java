@@ -1,25 +1,22 @@
 package javafxbrowser.listener;
 
-import javafx.concurrent.Worker;
 import javafxbrowser.frame.BroswerFXFrame;
 
 /**
  *
  * @author henry
  */
-public interface WebEngineChangeAction {
+public abstract class WebEngineChangeAction {
+
+    public void titleChangeAction(String newValue){};
     
-    public void setBroswerFXFrame(BroswerFXFrame broswerFXFrame);
+    public void workDoneAction(int newValue, BroswerFXFrame broswerFXFrame){};
 
-    public void titleChangeAction(String newValue);
+    public void onStatusChangeAction(String newValue, BroswerFXFrame broswerFXFrame){};
 
-    public void workDoneAction(int newValue);
+    public void locationChangeAction(String newValue, BroswerFXFrame broswerFXFrame){};
 
-    public void onStatusChangeAction(String newValue);
+    public void runStateAction(boolean newValue, BroswerFXFrame broswerFXFrame){};
 
-    public void locationChangeAction(String newValue);
-
-    public void runStateAction(boolean newValue);
-
-    public void exceptionAction(Throwable newValue);
+    public void exceptionAction(Throwable newValue, BroswerFXFrame broswerFXFrame){};
 }

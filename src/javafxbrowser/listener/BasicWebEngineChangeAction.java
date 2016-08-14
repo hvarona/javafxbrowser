@@ -10,18 +10,12 @@ import javafxbrowser.frame.BroswerFXFrame;
  *
  * @author henry
  */
-public class BasicWebEngineChangeAction implements WebEngineChangeAction {
+public class BasicWebEngineChangeAction extends WebEngineChangeAction {
 
     private TitleChangeAction titleChangeAction;
-    private BroswerFXFrame browserFrame;
 
     public BasicWebEngineChangeAction(TitleChangeAction titleChangeAction) {
         this.titleChangeAction = titleChangeAction;
-    }
-
-    @Override
-    public void setBroswerFXFrame(BroswerFXFrame broswerFXFrame) {
-        browserFrame = broswerFXFrame;
     }
 
     @Override
@@ -30,7 +24,7 @@ public class BasicWebEngineChangeAction implements WebEngineChangeAction {
     }
 
     @Override
-    public void workDoneAction(int newValue) {
+    public void workDoneAction(int newValue, BroswerFXFrame browserFrame) {
         browserFrame.getLoadingBar().progressProperty().bind(browserFrame.getEngine().getLoadWorker().progressProperty());
         if (newValue >= 100) {
             browserFrame.getLoadingBar().setVisible(false);
@@ -42,19 +36,19 @@ public class BasicWebEngineChangeAction implements WebEngineChangeAction {
     }
 
     @Override
-    public void onStatusChangeAction(String newValue) {
+    public void onStatusChangeAction(String newValue, BroswerFXFrame browserFrame) {
         browserFrame.getTextStatus().setText(newValue);
     }
 
     @Override
-    public void locationChangeAction(String newValue) {
+    public void locationChangeAction(String newValue, BroswerFXFrame browserFrame) {
         browserFrame.getTextURL().setText(newValue);
         browserFrame.setCurrentURL(newValue);
         browserFrame.enableDisableButtons();
     }
 
     @Override
-    public void runStateAction(boolean newValue) {
+    public void runStateAction(boolean newValue, BroswerFXFrame browserFrame) {
         if (newValue) {
             browserFrame.getRefreshStopButton().setGraphic(new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("javafxbrowser/frame/icon/stop-icon.png"))));
         } else {
@@ -63,10 +57,7 @@ public class BasicWebEngineChangeAction implements WebEngineChangeAction {
     }
 
     @Override
-    public void exceptionAction(Throwable newValue) {
-        /*if (state == Worker.State.FAILED) {
-
-        }*/
+    public void exceptionAction(Throwable newValue, BroswerFXFrame browserFrame) {
     }
 
 }

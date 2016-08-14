@@ -5,10 +5,16 @@
  */
 package javafxbrowser;
 
+import insidefx.undecorator.Undecorator;
 import javafx.application.Application;
+import javafx.event.Event;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafxbrowser.frame.BroswerFXFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
 
@@ -18,18 +24,118 @@ import javafxbrowser.listener.BasicWebEngineChangeAction;
  */
 public class JavaFxBrowser extends Application {
 
+    private final TabPane tabs = new TabPane();
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        BroswerFXFrame mainFrame = new BroswerFXFrame();
-        BorderPane basePane = new BorderPane();
-        basePane.setCenter(mainFrame.getRootPane(new BasicWebEngineChangeAction((String newValue) -> {
-            primaryStage.setTitle(newValue);
-        })));
+        tabs.setTabMinHeight(30);
+        tabs.setTabMaxWidth(40);
+        tabs.setMinHeight(600);
+        tabs.setMinWidth(800);
+        Tab buttonTab = new Tab();
+        buttonTab.setText("+");
+        buttonTab.setClosable(false);
+        tabs.getTabs().add(buttonTab);
+        buttonTab.setOnSelectionChanged((Event event) -> {
+            addTab();
+        });
 
-        Scene scene = new Scene(basePane);
+        Undecorator undecorator = new Undecorator(primaryStage, tabs);
+        undecorator.getStylesheets().add("skin/undecorator.css");
+        Node menu = undecorator.lookup("#StageMenu");
+        menu.setVisible(false);
+
+        Scene scene = new Scene(undecorator);
+        scene.setFill(Color.TRANSPARENT);
+        primaryStage.initStyle(StageStyle.TRANSPARENT);
+        primaryStage.setMinWidth(500);
+        primaryStage.setMinHeight(400);
+        primaryStage.setTitle("No title bar");
         primaryStage.setScene(scene);
         primaryStage.show();
-        mainFrame.getEngine().load("http://www.google.com/");
+        addTab("http://www.google.com/");
+
+    }
+
+    private void addTab() {
+        BroswerFXFrame newFrame = new BroswerFXFrame();
+        Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
+        tab.setText("New Window");
+        tab.setContent(newFrame.getRootPane(new BasicWebEngineChangeAction((String newValue) -> {
+            tab.setText(newValue);
+        })));
+        tab.setOnSelectionChanged((Event event) -> {
+        });
+        tab.setOnClosed((Event event) -> {
+            if (tabs.getTabs().size() > 2) {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(true);
+                });
+            } else {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(false);
+                });
+            }
+        });
+        tabs.getSelectionModel().select(tab);
+        if (tabs.getTabs().size() > 1) {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(true);
+            });
+        } else {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(false);
+            });
+        }
+        Tab buttonTab = new Tab();
+        buttonTab.setText("+");
+        buttonTab.setClosable(false);
+        buttonTab.setOnSelectionChanged((Event event) -> {
+            addTab();
+        });
+        tabs.getTabs().add(buttonTab);
+    }
+
+    private void addTab(String url) {
+        BroswerFXFrame newFrame = new BroswerFXFrame();
+        Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
+        tab.setText("New Window");
+        tab.setContent(newFrame.getRootPane(new BasicWebEngineChangeAction((String newValue) -> {
+            if (!newValue.isEmpty()) {
+                tab.setText(newValue);
+            }
+        })));
+        tab.setOnSelectionChanged((Event event) -> {
+        });
+        tab.setOnClosed((Event event) -> {
+            if (tabs.getTabs().size() > 2) {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(true);
+                });
+            } else {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(false);
+                });
+            }
+        });
+        tabs.getSelectionModel().select(tab);
+        if (tabs.getTabs().size() > 1) {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(true);
+            });
+        } else {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(false);
+            });
+        }
+        Tab buttonTab = new Tab();
+        buttonTab.setText("+");
+        buttonTab.setClosable(false);
+        buttonTab.setOnSelectionChanged((Event event) -> {
+            addTab();
+        });
+        tabs.getTabs().add(buttonTab);
+        newFrame.getEngine().load(url);
     }
 
     /**
