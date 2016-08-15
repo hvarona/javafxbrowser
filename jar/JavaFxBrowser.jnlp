@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="JavaFxBrowser.jnlp">
+  <information>
+    <title>JavaFxBrowser</title>
+    <vendor>henry</vendor>
+    <description>null</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="JavaFxBrowser.jar" size="25436" download="eager" />
+    <jar href="lib\UndecoratorBis.jar" size="121176" download="eager" />
+  </resources>
+  <application-desc main-class="javafxbrowser.JavaFxBrowser"  name="JavaFxBrowser" >
+  </application-desc>
+  <update check="always"/>
+</jnlp>
