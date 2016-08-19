@@ -8,6 +8,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.print.Printer;
+import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -21,17 +23,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javafxbrowser.listener.WebEngineChangeAction;
-import org.w3c.dom.Element;
 
 /**
  *
@@ -54,6 +55,7 @@ public class BroswerFXFrame {
     private Label textStatus;
     private TextField textURL;
     private WebEngine engine;
+    private WebView webView;
 
     private String lastFindText = "";
 
@@ -75,7 +77,7 @@ public class BroswerFXFrame {
 
         ScrollPane scrollPane = new ScrollPane();
         centerPane.getChildren().add(scrollPane);
-        WebView webView = new WebView();
+        webView = new WebView();
         engine = webView.getEngine();
 
         scrollPane.setContent(webView);
@@ -121,7 +123,6 @@ public class BroswerFXFrame {
             });
         });
 
-        //rootPane.setCenter(webView);
         rootPane.setCenter(centerPane);
 
         return rootPane;
@@ -157,10 +158,15 @@ public class BroswerFXFrame {
 
         goButton.setOnAction(goButtonAction());
         textURL.setOnAction(goButtonAction());
+        
 
         topPanel.setLeft(topPanelLeft);
         topPanel.setCenter(textURL);
         topPanel.setRight(topPaneRight);
+    }
+
+    private void createMenuBar() {
+
     }
 
     private void loadMenu(MenuButton menu) {
@@ -168,6 +174,11 @@ public class BroswerFXFrame {
         menu.getItems().add(searchOption);
         searchOption.setOnAction((ActionEvent evt) -> {
             createSearchWindow();
+        });
+        MenuItem printOption = new MenuItem("Print page");
+        menu.getItems().add(printOption);
+        printOption.setOnAction((ActionEvent evt) -> {
+            printPage();
         });
 
         MenuItem closeOption = new MenuItem("Exit");
@@ -311,6 +322,14 @@ public class BroswerFXFrame {
 
     public Button getRefreshStopButton() {
         return refreshStopButton;
+    }
+
+    public void printPage() {
+        PrinterJob job = PrinterJob.createPrinterJob();
+        if (job != null && job.showPrintDialog(webView.getScene().getWindow())) {
+            engine.print(job);
+            job.endJob();
+        }
     }
 
 }

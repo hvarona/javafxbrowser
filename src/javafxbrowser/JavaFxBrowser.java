@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package javafxbrowser;
 
 import insidefx.undecorator.Undecorator;
@@ -13,7 +8,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafxbrowser.frame.BroswerFXFrame;
@@ -45,17 +39,17 @@ public class JavaFxBrowser extends Application {
         undecorator.getStylesheets().add("skin/undecorator.css");
         Node menu = undecorator.lookup("#StageMenu");
         menu.setVisible(false);
-
         Scene scene = new Scene(undecorator);
         scene.setFill(Color.TRANSPARENT);
+        
+        //Scene scene = new Scene(tabs);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.setMinWidth(500);
         primaryStage.setMinHeight(400);
         primaryStage.setTitle("No title bar");
         primaryStage.setScene(scene);
         primaryStage.show();
-        addTab("http://www.google.com/");
-
+        addTab("http://www.google.com/"); //homePage
     }
 
     private void addTab() {
