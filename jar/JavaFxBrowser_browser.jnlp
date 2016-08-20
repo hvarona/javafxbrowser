@@ -8,7 +8,7 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="JavaFxBrowser.jar" size="25436" download="eager" />
+    <jar href="JavaFxBrowser.jar" size="65443" download="eager" />
     <jar href="lib\UndecoratorBis.jar" size="121176" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="javafxbrowser.JavaFxBrowser"  name="JavaFxBrowser" >
