@@ -55,11 +55,11 @@ public class JavaFxBrowser extends Application {
         addTab("http://www.google.com/"); //homePage
     }
 
-    private void addTab() {
+    public void addTab() {
         BroswerFXFrame newFrame = new BroswerFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(defaultConfig));
+        tab.setContent(newFrame.getRootPane(defaultConfig,this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));
@@ -99,7 +99,7 @@ public class JavaFxBrowser extends Application {
         BroswerFXFrame newFrame = new BroswerFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(defaultConfig));
+        tab.setContent(newFrame.getRootPane(defaultConfig,this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));

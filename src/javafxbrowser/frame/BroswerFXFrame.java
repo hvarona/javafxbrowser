@@ -7,8 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,7 +18,10 @@ import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
@@ -33,6 +35,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
@@ -40,6 +43,7 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafxbrowser.JavaFxBrowser;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
 import org.w3c.dom.Document;
@@ -60,7 +64,7 @@ public class BroswerFXFrame {
     private String currentURL = "";
 
     private BorderPane rootPane;
-    private BorderPane topPanel;
+    private VBox topPanel;
     private StackPane bottomPanel;
     private StackPane centerPane;
 
@@ -78,17 +82,22 @@ public class BroswerFXFrame {
 
     private BrowserConfigurator config;
 
+    private JavaFxBrowser parent;
+
     private final List<WebEngineChangeAction> changeActions = new ArrayList();
 
-    public synchronized Parent getRootPane(BrowserConfigurator config) {
+    public synchronized Parent getRootPane(BrowserConfigurator config, JavaFxBrowser parent) {
         if (rootPane != null) {
             return rootPane;
         }
+        this.parent = parent;
 
         this.config = config;
 
         rootPane = new BorderPane();
-        createTopPane();
+        topPanel = new VBox();
+        topPanel.getChildren().add(createMenuBar());
+        topPanel.getChildren().add(createNAvigatorBar());
         rootPane.setTop(topPanel);
 
         createBottomPane();
@@ -154,9 +163,10 @@ public class BroswerFXFrame {
         changeActions.add(action);
     }
 
-    private void createTopPane() {
-        topPanel = new BorderPane();
-        topPanel.setPrefHeight(20);
+    private BorderPane createNAvigatorBar() {
+        BorderPane navigatorPane = new BorderPane();
+        navigatorPane.setId("navigatorBar");
+        navigatorPane.setPrefHeight(20);
 
         HBox topPanelLeft = new HBox();
         backwardButton = new Button("", new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("javafxbrowser/frame/icon/arrow--icon-left.png"))));
@@ -185,13 +195,70 @@ public class BroswerFXFrame {
         goButton.setOnAction(goButtonAction());
         textURL.setOnAction(goButtonAction());
 
-        topPanel.setLeft(topPanelLeft);
-        topPanel.setCenter(textURL);
-        topPanel.setRight(topPaneRight);
+        navigatorPane.setLeft(topPanelLeft);
+        navigatorPane.setCenter(textURL);
+        navigatorPane.setRight(topPaneRight);
+        return navigatorPane;
     }
 
-    private void createMenuBar() {
+    private MenuBar createMenuBar() {
+        MenuBar menuBar = new MenuBar();
+        menuBar.setId("menuBar");
+        Menu menuFile = new Menu("File");
+        Menu menuEdit = new Menu("Edit");
+        Menu menuView = new Menu("View");
+        menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
 
+        MenuItem newTabOption = new MenuItem("New Tab");
+        menuFile.getItems().add(newTabOption);
+        newTabOption.setOnAction((ActionEvent evt) -> {
+            parent.addTab();
+        });
+
+        MenuItem saveOption = new MenuItem("Save Page");
+        menuFile.getItems().add(saveOption);
+        saveOption.setOnAction((ActionEvent evt) -> {
+            savePage();
+        });
+        MenuItem printOption = new MenuItem("Print page");
+        menuFile.getItems().add(printOption);
+        printOption.setOnAction((ActionEvent evt) -> {
+            printPage();
+        });
+
+        MenuItem closeOption = new MenuItem("Exit");
+        menuFile.getItems().add(closeOption);
+        closeOption.setOnAction((ActionEvent evt) -> {
+            System.exit(0);
+        });
+        MenuItem searchOption = new MenuItem("Search");
+        menuEdit.getItems().add(searchOption);
+        searchOption.setOnAction((ActionEvent evt) -> {
+            createSearchWindow();
+        });
+
+        CheckMenuItem viewNavigationOption = new CheckMenuItem("NavigationBar");
+        viewNavigationOption.setSelected(true);
+        viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
+            if (new_val) {
+                topPanel.getChildren().add(createNAvigatorBar());
+                textURL.setText(currentURL);
+            } else {
+                Node navigatorNode = null;
+                for (Node node : topPanel.getChildren()) {
+                    if (node.getId().equalsIgnoreCase("navigatorBar")) {
+                        navigatorNode = node;
+                    }
+                }
+                if (navigatorNode != null) {
+                    topPanel.getChildren().remove(navigatorNode);
+                }
+            }
+        });
+
+        menuView.getItems().add(viewNavigationOption);
+
+        return menuBar;
     }
 
     private void loadMenu(MenuButton menu) {
