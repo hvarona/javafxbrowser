@@ -1,7 +1,5 @@
 package javafxbrowser.listener;
 
-import javafx.concurrent.Worker;
-import javafx.concurrent.Worker.State;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafxbrowser.frame.BroswerFXFrame;

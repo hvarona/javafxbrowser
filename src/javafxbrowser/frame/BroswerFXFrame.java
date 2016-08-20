@@ -1,7 +1,8 @@
 package javafxbrowser.frame;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,13 +38,9 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
+import javafx.stage.FileChooser;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 
 /**
@@ -287,7 +284,7 @@ public class BroswerFXFrame {
             try {
                 new URL(route).openStream().close();
             } catch (MalformedURLException exception) {
-                if (route.indexOf(" ") >= 0) {
+                if (route.contains(" ")) {
                     searchURL(textURL.getText());
                     return;
                 }
@@ -388,26 +385,45 @@ public class BroswerFXFrame {
     private void savePage() {
         Document doc = engine.getDocument();
         if (doc != null) {
-            System.out.println("DOC TYPE: " + doc.getDoctype().getName());
-            System.out.println("DOC : " + (String) engine.executeScript("document.documentElement.outerHTML"));
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Page File");
+            fileChooser.setInitialDirectory(engine.getUserDataDirectory());
             try {
-                Transformer transformer = TransformerFactory.newInstance().newTransformer();
-                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-                transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
-                transformer.transform(new DOMSource(doc),
-                        new StreamResult(new OutputStreamWriter(System.out, "UTF-8")));
-            } catch (Exception ex) {
+                String fileName = new URL(currentURL).getFile();
+                while (fileName.contains("/")) {
+                    fileName = fileName.substring(fileName.indexOf("/") + 1);
+                }
+                if (fileName.contains("?")) {
+                    fileName = fileName.substring(0, fileName.indexOf("?"));
+                }
+                if (fileName.isEmpty()) {
+                    fileName = engine.getTitle() + ".html";
+                }
+
+                fileChooser.setInitialFileName(fileName);
+            } catch (MalformedURLException ex) {
                 ex.printStackTrace();
+                fileChooser.setInitialFileName(engine.getTitle());
+            }
+            File file = fileChooser.showSaveDialog(webView.getScene().getWindow());
+            if (file != null) {
+                if (doc.getDoctype() != null) {
+                    try {
+                        FileWriter fileWriter = new FileWriter(file);
+                        fileWriter.write((String) engine.executeScript("document.documentElement.outerHTML"));
+                        fileWriter.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }else{
+                    //not an html file;
+                }
             }
         }
     }
 
     private void searchURL(String searchText) {
-        System.out.println("en searchURL");
         String url = this.config.getDefaultSearchEngine().getUrl();
         url = url.replaceAll("%s", "\"" + searchText + "\"");
         engine.load(url);
