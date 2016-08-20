@@ -1,14 +1,19 @@
 package javafxbrowser.frame;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.print.Printer;
 import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -32,7 +37,14 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
+import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
 
 /**
  *
@@ -40,6 +52,13 @@ import javafxbrowser.listener.WebEngineChangeAction;
  */
 public class BroswerFXFrame {
 
+    /*
+    TODO:
+    - MEnu bar
+    - Print option
+    - Save PAge option
+    - Search url textField
+     */
     private String currentURL = "";
 
     private BorderPane rootPane;
@@ -59,13 +78,17 @@ public class BroswerFXFrame {
 
     private String lastFindText = "";
 
+    private BrowserConfigurator config;
+
     private final List<WebEngineChangeAction> changeActions = new ArrayList();
 
-    public synchronized Parent getRootPane(WebEngineChangeAction engineChangeAction) {
+    public synchronized Parent getRootPane(BrowserConfigurator config) {
         if (rootPane != null) {
             return rootPane;
         }
-        changeActions.add(engineChangeAction);
+
+        this.config = config;
+
         rootPane = new BorderPane();
         createTopPane();
         rootPane.setTop(topPanel);
@@ -107,6 +130,7 @@ public class BroswerFXFrame {
         });
 
         engine.getLoadWorker().workDoneProperty().addListener((ObservableValue<? extends Number> observableValue, Number oldValue, final Number newValue) -> {
+
             changeActions.stream().forEach((action) -> {
                 action.workDoneAction(newValue.intValue(), this);
             });
@@ -126,6 +150,10 @@ public class BroswerFXFrame {
         rootPane.setCenter(centerPane);
 
         return rootPane;
+    }
+
+    public void addChangeAction(WebEngineChangeAction action) {
+        changeActions.add(action);
     }
 
     private void createTopPane() {
@@ -158,7 +186,6 @@ public class BroswerFXFrame {
 
         goButton.setOnAction(goButtonAction());
         textURL.setOnAction(goButtonAction());
-        
 
         topPanel.setLeft(topPanelLeft);
         topPanel.setCenter(textURL);
@@ -170,6 +197,11 @@ public class BroswerFXFrame {
     }
 
     private void loadMenu(MenuButton menu) {
+        MenuItem saveOption = new MenuItem("Save Page");
+        menu.getItems().add(saveOption);
+        saveOption.setOnAction((ActionEvent evt) -> {
+            savePage();
+        });
         MenuItem searchOption = new MenuItem("Search");
         menu.getItems().add(searchOption);
         searchOption.setOnAction((ActionEvent evt) -> {
@@ -252,6 +284,27 @@ public class BroswerFXFrame {
     private EventHandler<ActionEvent> goButtonAction() {
         return (ActionEvent event) -> {
             String route = textURL.getText();
+            try {
+                new URL(route).openStream().close();
+            } catch (MalformedURLException exception) {
+                if (route.indexOf(" ") >= 0) {
+                    searchURL(textURL.getText());
+                    return;
+                }
+                route = "http://" + route + "/";
+                try {
+                    new URL(route).openStream().close();
+                } catch (MalformedURLException ex) {
+                    searchURL(textURL.getText());
+                    return;
+                } catch (IOException ex) {
+                    searchURL(textURL.getText());
+                    return;
+                }
+            } catch (IOException ex) {
+                searchURL(textURL.getText());
+                return;
+            }
             engine.load(route);
         };
     }
@@ -330,6 +383,34 @@ public class BroswerFXFrame {
             engine.print(job);
             job.endJob();
         }
+    }
+
+    private void savePage() {
+        Document doc = engine.getDocument();
+        if (doc != null) {
+            System.out.println("DOC TYPE: " + doc.getDoctype().getName());
+            System.out.println("DOC : " + (String) engine.executeScript("document.documentElement.outerHTML"));
+            try {
+                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+                transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+                transformer.transform(new DOMSource(doc),
+                        new StreamResult(new OutputStreamWriter(System.out, "UTF-8")));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void searchURL(String searchText) {
+        System.out.println("en searchURL");
+        String url = this.config.getDefaultSearchEngine().getUrl();
+        url = url.replaceAll("%s", "\"" + searchText + "\"");
+        engine.load(url);
     }
 
 }

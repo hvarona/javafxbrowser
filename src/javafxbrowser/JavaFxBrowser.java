@@ -10,6 +10,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.frame.BroswerFXFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
 
@@ -20,9 +21,11 @@ import javafxbrowser.listener.BasicWebEngineChangeAction;
 public class JavaFxBrowser extends Application {
 
     private final TabPane tabs = new TabPane();
+    private BrowserConfigurator defaultConfig;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        defaultConfig = new BrowserConfigurator();
         tabs.setTabMinHeight(30);
         tabs.setTabMaxWidth(40);
         tabs.setMinHeight(600);
@@ -41,7 +44,7 @@ public class JavaFxBrowser extends Application {
         menu.setVisible(false);
         Scene scene = new Scene(undecorator);
         scene.setFill(Color.TRANSPARENT);
-        
+
         //Scene scene = new Scene(tabs);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.setMinWidth(500);
@@ -56,9 +59,10 @@ public class JavaFxBrowser extends Application {
         BroswerFXFrame newFrame = new BroswerFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(new BasicWebEngineChangeAction((String newValue) -> {
+        tab.setContent(newFrame.getRootPane(defaultConfig));
+        newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
-        })));
+        }));
         tab.setOnSelectionChanged((Event event) -> {
         });
         tab.setOnClosed((Event event) -> {
@@ -95,11 +99,10 @@ public class JavaFxBrowser extends Application {
         BroswerFXFrame newFrame = new BroswerFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(new BasicWebEngineChangeAction((String newValue) -> {
-            if (!newValue.isEmpty()) {
-                tab.setText(newValue);
-            }
-        })));
+        tab.setContent(newFrame.getRootPane(defaultConfig));
+        newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
+            tab.setText(newValue);
+        }));
         tab.setOnSelectionChanged((Event event) -> {
         });
         tab.setOnClosed((Event event) -> {
@@ -133,8 +136,6 @@ public class JavaFxBrowser extends Application {
         newFrame.getEngine().load(url);
     }
 
-    
-
     /**
      * @param args the command line arguments
      */
@@ -157,5 +158,4 @@ public class JavaFxBrowser extends Application {
         launch(args);
     }
 
-    
 }
