@@ -39,6 +39,7 @@ import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
 import org.w3c.dom.Document;
@@ -406,17 +407,18 @@ public class BroswerFXFrame {
                 ex.printStackTrace();
                 fileChooser.setInitialFileName(engine.getTitle());
             }
+            fileChooser.getExtensionFilters().add(new ExtensionFilter("HTML File", "*.html"));
+
             File file = fileChooser.showSaveDialog(webView.getScene().getWindow());
             if (file != null) {
                 if (doc.getDoctype() != null) {
-                    try {
-                        FileWriter fileWriter = new FileWriter(file);
+                    try (FileWriter fileWriter = new FileWriter(file)) {
                         fileWriter.write((String) engine.executeScript("document.documentElement.outerHTML"));
-                        fileWriter.close();
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                }else{
+
+                } else {
                     //not an html file;
                 }
             }
