@@ -1,13 +1,17 @@
 package javafxbrowser.frame;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.value.ChangeListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -97,7 +101,7 @@ public class BroswerFXFrame {
         rootPane = new BorderPane();
         topPanel = new VBox();
         topPanel.getChildren().add(createMenuBar());
-        topPanel.getChildren().add(createNAvigatorBar());
+        topPanel.getChildren().add(createNavigatorBar());
         rootPane.setTop(topPanel);
 
         createBottomPane();
@@ -163,7 +167,7 @@ public class BroswerFXFrame {
         changeActions.add(action);
     }
 
-    private BorderPane createNAvigatorBar() {
+    private BorderPane createNavigatorBar() {
         BorderPane navigatorPane = new BorderPane();
         navigatorPane.setId("navigatorBar");
         navigatorPane.setPrefHeight(20);
@@ -190,7 +194,13 @@ public class BroswerFXFrame {
         MenuButton menu = new MenuButton("Menu");
         loadMenu(menu);
         goButton.setPrefSize(35, 17);
-        topPaneRight.getChildren().addAll(goButton, menu);
+        TextField searchText = new TextField();
+        searchText.setPrefWidth(100);
+        searchText.setOnAction((ActionEvent evt) -> {
+            searchURL(searchText.getText());
+        });
+
+        topPaneRight.getChildren().addAll(searchText, goButton, menu);
 
         goButton.setOnAction(goButtonAction());
         textURL.setOnAction(goButtonAction());
@@ -241,7 +251,7 @@ public class BroswerFXFrame {
         viewNavigationOption.setSelected(true);
         viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
             if (new_val) {
-                topPanel.getChildren().add(createNAvigatorBar());
+                topPanel.getChildren().add(createNavigatorBar());
                 textURL.setText(currentURL);
             } else {
                 Node navigatorNode = null;
@@ -456,6 +466,7 @@ public class BroswerFXFrame {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save Page File");
             fileChooser.setInitialDirectory(engine.getUserDataDirectory());
+            String fileExtension = "html";
             try {
 
                 String fileName = new URL(currentURL).getFile();
@@ -469,12 +480,16 @@ public class BroswerFXFrame {
                     fileName = engine.getTitle() + ".html";
                 }
 
+                if (fileName.contains(".")) {
+                    fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
+                }
+
                 fileChooser.setInitialFileName(fileName);
             } catch (MalformedURLException ex) {
                 ex.printStackTrace();
                 fileChooser.setInitialFileName(engine.getTitle());
             }
-            fileChooser.getExtensionFilters().add(new ExtensionFilter("HTML File", "*.html"));
+            fileChooser.getExtensionFilters().add(new ExtensionFilter(fileExtension.toUpperCase() + " File", "*." + fileExtension.toLowerCase()));
 
             File file = fileChooser.showSaveDialog(webView.getScene().getWindow());
             if (file != null) {
@@ -486,7 +501,44 @@ public class BroswerFXFrame {
                     }
 
                 } else {
+                    downloadFile(file, currentURL);
                     //not an html file;
+                }
+            }
+        }
+    }
+
+    private void downloadFile(File output, String url) {
+        BufferedInputStream in = null;
+        FileOutputStream fout = null;
+        try {
+            in = new BufferedInputStream(new URL(url).openStream());
+            fout = new FileOutputStream(output);
+
+            final byte data[] = new byte[1024];
+            int count;
+            while ((count = in.read(data, 0, 1024)) != -1) {
+                fout.write(data, 0, count);
+            }
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (MalformedURLException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            if (fout != null) {
+                try {
+                    fout.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
             }
         }
