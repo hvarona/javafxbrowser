@@ -1,13 +1,13 @@
 package javafxbrowser.frame;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -124,7 +124,27 @@ public class BroswerFXFrame {
 
         engine.titleProperty().addListener((ObservableValue<? extends String> observable, String oldValue, final String newValue) -> {
             changeActions.stream().forEach((action) -> {
-                action.titleChangeAction(newValue);
+                String title = newValue;
+                if (title == null || title.isEmpty()) {
+                    try {
+                        String fileName = new URL(currentURL).getFile();
+                        while (fileName.contains("/")) {
+                            fileName = fileName.substring(fileName.indexOf("/") + 1);
+                        }
+                        if (fileName.contains("?")) {
+                            fileName = fileName.substring(0, fileName.indexOf("?"));
+                        }
+                        if (fileName.contains(".")) {
+                            fileName = fileName.substring(0, fileName.indexOf("."));
+                        }
+                        title = fileName;
+                    } catch (MalformedURLException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                if (title == null || title.isEmpty()) {
+                    action.titleChangeAction(title);
+                }
             });
         });
 
@@ -509,38 +529,11 @@ public class BroswerFXFrame {
     }
 
     private void downloadFile(File output, String url) {
-        BufferedInputStream in = null;
-        FileOutputStream fout = null;
-        try {
-            in = new BufferedInputStream(new URL(url).openStream());
-            fout = new FileOutputStream(output);
-
-            final byte data[] = new byte[1024];
-            int count;
-            while ((count = in.read(data, 0, 1024)) != -1) {
-                fout.write(data, 0, count);
-            }
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (MalformedURLException ex) {
-            ex.printStackTrace();
+        try (InputStream in = new URL(url).openStream()) {
+            Files.copy(in, output.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            in.close();
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            if (fout != null) {
-                try {
-                    fout.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
         }
     }
 
