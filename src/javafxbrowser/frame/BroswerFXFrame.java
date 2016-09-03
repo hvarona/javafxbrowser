@@ -4,18 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.Proxy;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-import java.net.URLStreamHandlerFactory;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -98,25 +92,12 @@ public class BroswerFXFrame {
         if (rootPane != null) {
             return rootPane;
         }
-        URL.setURLStreamHandlerFactory(new URLStreamHandlerFactory() {
-            public URLStreamHandler createURLStreamHandler(String protocol) {
-                if ("http".equals(protocol)) {
-                    return new URLStreamHandler() {
-                        protected URLConnection openConnection(URL u) throws IOException {
-                            System.out.println(u.toString());
-                            return new sun.net.www.protocol.http.HttpURLConnection(u, Proxy.NO_PROXY);
-                            
-                        }
-                    };
-                }
-                // Don't handle a non-http protocol, so just return null and let
-                // the system return the default one.
-                return null;
-            }
-        });
+        
         this.parent = parent;
 
         this.config = config;
+        
+        
 
         rootPane = new BorderPane();
         topPanel = new VBox();

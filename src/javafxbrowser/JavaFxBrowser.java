@@ -1,6 +1,13 @@
 package javafxbrowser;
 
 import insidefx.undecorator.Undecorator;
+import java.io.IOException;
+import java.net.CookieManager;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
 import javafx.application.Application;
 import javafx.event.Event;
 import javafx.scene.Node;
@@ -13,6 +20,9 @@ import javafx.stage.StageStyle;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.frame.BroswerFXFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
+import javafxbrowser.manager.CacheHandler;
+import javafxbrowser.manager.CookieHandler;
+import sun.net.www.protocol.http.HttpURLConnection;
 
 /**
  *
@@ -23,8 +33,15 @@ public class JavaFxBrowser extends Application {
     private final TabPane tabs = new TabPane();
     private BrowserConfigurator defaultConfig;
 
+    private CacheHandler cacheHandler;
+    private CookieHandler cookieHandler;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
+        cacheHandler = new CacheHandler();
+        URL.setURLStreamHandlerFactory(cacheHandler);
+        cookieHandler = new CookieHandler();
+        CookieManager.setDefault(cookieHandler.getCookieManager());
         defaultConfig = new BrowserConfigurator();
         tabs.setTabMinHeight(30);
         tabs.setTabMaxWidth(40);
@@ -59,7 +76,7 @@ public class JavaFxBrowser extends Application {
         BroswerFXFrame newFrame = new BroswerFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(defaultConfig,this));
+        tab.setContent(newFrame.getRootPane(defaultConfig, this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));
@@ -99,7 +116,7 @@ public class JavaFxBrowser extends Application {
         BroswerFXFrame newFrame = new BroswerFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(defaultConfig,this));
+        tab.setContent(newFrame.getRootPane(defaultConfig, this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));
@@ -142,19 +159,19 @@ public class JavaFxBrowser extends Application {
     public static void main(String[] args) {
         /*SwingUtilities.invokeLater(new Runnable() {
 
-            @Override
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-                } catch (Exception e) {
-                }
+         @Override
+         public void run() {
+         try {
+         UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+         } catch (Exception e) {
+         }
 
-                BrowserFrame main = new BrowserFrame();
-                main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                main.setVisible(true);
-                main.loadURL("http://www.google.com/"); //Home Page
-            }
-        });*/
+         BrowserFrame main = new BrowserFrame();
+         main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         main.setVisible(true);
+         main.loadURL("http://www.google.com/"); //Home Page
+         }
+         });*/
         launch(args);
     }
 
