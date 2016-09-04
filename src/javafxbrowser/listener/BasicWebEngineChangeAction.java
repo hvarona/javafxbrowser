@@ -2,7 +2,7 @@ package javafxbrowser.listener;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafxbrowser.frame.BroswerFXFrame;
+import javafxbrowser.frame.BrowserFXFrame;
 
 /**
  *
@@ -22,7 +22,7 @@ public class BasicWebEngineChangeAction extends WebEngineChangeAction {
     }
 
     @Override
-    public void workDoneAction(int newValue, BroswerFXFrame browserFrame) {
+    public void workDoneAction(int newValue, BrowserFXFrame browserFrame) {
         browserFrame.getLoadingBar().progressProperty().bind(browserFrame.getEngine().getLoadWorker().progressProperty());
         if (newValue >= 100) {
             browserFrame.getLoadingBar().setVisible(false);
@@ -34,19 +34,19 @@ public class BasicWebEngineChangeAction extends WebEngineChangeAction {
     }
 
     @Override
-    public void onStatusChangeAction(String newValue, BroswerFXFrame browserFrame) {
+    public void onStatusChangeAction(String newValue, BrowserFXFrame browserFrame) {
         browserFrame.getTextStatus().setText(newValue);
     }
 
     @Override
-    public void locationChangeAction(String newValue, BroswerFXFrame browserFrame) {
+    public void locationChangeAction(String newValue, BrowserFXFrame browserFrame) {
         browserFrame.getTextURL().setText(newValue);
         browserFrame.setCurrentURL(newValue);
         browserFrame.enableDisableButtons();
     }
 
     @Override
-    public void runStateAction(boolean newValue, BroswerFXFrame browserFrame) {
+    public void runStateAction(boolean newValue, BrowserFXFrame browserFrame) {
         if (newValue) {
             browserFrame.getRefreshStopButton().setGraphic(new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("javafxbrowser/frame/icon/stop-icon.png"))));
         } else {
@@ -55,7 +55,7 @@ public class BasicWebEngineChangeAction extends WebEngineChangeAction {
     }
 
     @Override
-    public void exceptionAction(Throwable newValue, BroswerFXFrame browserFrame) {
+    public void exceptionAction(Throwable newValue, BrowserFXFrame browserFrame) {
     }
 
 }

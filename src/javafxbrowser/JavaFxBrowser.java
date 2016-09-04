@@ -1,13 +1,8 @@
 package javafxbrowser;
 
 import insidefx.undecorator.Undecorator;
-import java.io.IOException;
 import java.net.CookieManager;
-import java.net.Proxy;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-import java.net.URLStreamHandlerFactory;
 import javafx.application.Application;
 import javafx.event.Event;
 import javafx.scene.Node;
@@ -18,11 +13,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafxbrowser.cfg.BrowserConfigurator;
-import javafxbrowser.frame.BroswerFXFrame;
+import javafxbrowser.frame.BrowserFXFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
-import sun.net.www.protocol.http.HttpURLConnection;
 
 /**
  *
@@ -73,7 +67,7 @@ public class JavaFxBrowser extends Application {
     }
 
     public void addTab() {
-        BroswerFXFrame newFrame = new BroswerFXFrame();
+        BrowserFXFrame newFrame = new BrowserFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
         tab.setContent(newFrame.getRootPane(defaultConfig, this));
@@ -113,7 +107,7 @@ public class JavaFxBrowser extends Application {
     }
 
     private void addTab(String url) {
-        BroswerFXFrame newFrame = new BroswerFXFrame();
+        BrowserFXFrame newFrame = new BrowserFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
         tab.setContent(newFrame.getRootPane(defaultConfig, this));

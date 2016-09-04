@@ -1,6 +1,6 @@
 package javafxbrowser.listener;
 
-import javafxbrowser.frame.BroswerFXFrame;
+import javafxbrowser.frame.BrowserFXFrame;
 
 /**
  *
@@ -10,13 +10,13 @@ public abstract class WebEngineChangeAction {
 
     public void titleChangeAction(String newValue){};
     
-    public void workDoneAction(int newValue, BroswerFXFrame broswerFXFrame){};
+    public void workDoneAction(int newValue, BrowserFXFrame broswerFXFrame){};
 
-    public void onStatusChangeAction(String newValue, BroswerFXFrame broswerFXFrame){};
+    public void onStatusChangeAction(String newValue, BrowserFXFrame broswerFXFrame){};
 
-    public void locationChangeAction(String newValue, BroswerFXFrame broswerFXFrame){};
+    public void locationChangeAction(String newValue, BrowserFXFrame broswerFXFrame){};
 
-    public void runStateAction(boolean newValue, BroswerFXFrame broswerFXFrame){};
+    public void runStateAction(boolean newValue, BrowserFXFrame broswerFXFrame){};
 
-    public void exceptionAction(Throwable newValue, BroswerFXFrame broswerFXFrame){};
+    public void exceptionAction(Throwable newValue, BrowserFXFrame broswerFXFrame){};
 }

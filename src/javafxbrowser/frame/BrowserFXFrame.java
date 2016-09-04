@@ -20,10 +20,8 @@ import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
@@ -31,6 +29,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -39,22 +40,26 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.web.PopupFeatures;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.util.Callback;
 import javafxbrowser.JavaFxBrowser;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
+import javafxbrowser.manager.MenuHandler;
+import netscape.javascript.JSObject;
 import org.w3c.dom.Document;
 
 /**
  *
  * @author henry
  */
-public class BroswerFXFrame {
+public class BrowserFXFrame {
 
     /*
     TODO:
@@ -83,6 +88,8 @@ public class BroswerFXFrame {
     private String lastFindText = "";
 
     private BrowserConfigurator config;
+    private MenuHandler menuHandler;
+    private ContextMenu contextMenu;
 
     private JavaFxBrowser parent;
 
@@ -92,16 +99,16 @@ public class BroswerFXFrame {
         if (rootPane != null) {
             return rootPane;
         }
-        
+        menuHandler = new MenuHandler(parent, this);
+
         this.parent = parent;
 
         this.config = config;
-        
-        
 
         rootPane = new BorderPane();
         topPanel = new VBox();
-        topPanel.getChildren().add(createMenuBar());
+        //topPanel.getChildren().add(createMenuBar());
+        topPanel.getChildren().add(menuHandler.getMenuBar());
         topPanel.getChildren().add(createNavigatorBar());
         rootPane.setTop(topPanel);
 
@@ -181,6 +188,37 @@ public class BroswerFXFrame {
 
         rootPane.setCenter(centerPane);
 
+        webView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+
+            @Override
+            public void handle(MouseEvent mouse) {
+                if (mouse.getButton() == MouseButton.SECONDARY) {
+                    JSObject el = (JSObject) engine.executeScript("document.elementFromPoint(" + mouse.getScreenX() + "," + mouse.getScreenY() + ");");
+                    System.out.println(el);
+                    contextMenu = menuHandler.getContextMenu();
+
+                    contextMenu.show(webView, mouse.getScreenX(), mouse.getScreenY());
+                } else if (contextMenu != null) {
+                    contextMenu.hide();
+                }
+            }
+        });
+
+        webView.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+            @Override
+            public void handle(ContextMenuEvent event) {
+                System.out.println("contextMenu Event");
+            }
+        });
+
+        engine.setCreatePopupHandler(new Callback<PopupFeatures, WebEngine>() {
+            @Override
+            public WebEngine call(PopupFeatures param) {
+                // Open Link in new Window option
+                return null;
+            }
+        });
+
         return rootPane;
     }
 
@@ -232,7 +270,7 @@ public class BroswerFXFrame {
         return navigatorPane;
     }
 
-    private MenuBar createMenuBar() {
+    /*private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
         menuBar.setId("menuBar");
         Menu menuFile = new Menu("File");
@@ -290,8 +328,7 @@ public class BroswerFXFrame {
         menuView.getItems().add(viewNavigationOption);
 
         return menuBar;
-    }
-
+    }*/
     private void loadMenu(MenuButton menu) {
         MenuItem saveOption = new MenuItem("Save Page");
         menu.getItems().add(saveOption);
@@ -316,7 +353,7 @@ public class BroswerFXFrame {
         });
     }
 
-    private void createSearchWindow() {
+    public void createSearchWindow() {
         for (Node child : centerPane.getChildren()) {
             if (child.getId() != null && child.getId().equals("searchPanel")) {
                 return;
@@ -481,7 +518,7 @@ public class BroswerFXFrame {
         }
     }
 
-    private void savePage() {
+    public void savePage() {
         Document doc = engine.getDocument();
         if (doc != null) {
             FileChooser fileChooser = new FileChooser();
@@ -542,6 +579,23 @@ public class BroswerFXFrame {
         String url = this.config.getDefaultSearchEngine().getUrl();
         url = url.replaceAll("%s", "\"" + searchText + "\"");
         engine.load(url);
+    }
+
+    public void hideShowNavigationBar(boolean show) {
+        if (show) {
+            topPanel.getChildren().add(createNavigatorBar());
+            textURL.setText(currentURL);
+        } else {
+            Node navigatorNode = null;
+            for (Node node : topPanel.getChildren()) {
+                if (node.getId().equalsIgnoreCase("navigatorBar")) {
+                    navigatorNode = node;
+                }
+            }
+            if (navigatorNode != null) {
+                topPanel.getChildren().remove(navigatorNode);
+            }
+        }
     }
 
 }
