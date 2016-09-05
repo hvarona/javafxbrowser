@@ -15,6 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.print.PrinterJob;
 import javafx.scene.Node;
@@ -62,11 +63,11 @@ import org.w3c.dom.Document;
 public class BrowserFXFrame {
 
     /*
-    TODO:
-    - MEnu bar
-    - Print option
-    - Save PAge option
-    - Search url textField
+     TODO:
+     - MEnu bar
+     - Print option
+     - Save PAge option
+     - Search url textField
      */
     private String currentURL = "";
 
@@ -149,8 +150,7 @@ public class BrowserFXFrame {
                     } catch (MalformedURLException ex) {
                         ex.printStackTrace();
                     }
-                }
-                if (title == null || title.isEmpty()) {
+                } else {
                     action.titleChangeAction(title);
                 }
             });
@@ -188,15 +188,16 @@ public class BrowserFXFrame {
 
         rootPane.setCenter(centerPane);
 
+        webView.setContextMenuEnabled(false);
         webView.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
             @Override
             public void handle(MouseEvent mouse) {
                 if (mouse.getButton() == MouseButton.SECONDARY) {
-                    JSObject el = (JSObject) engine.executeScript("document.elementFromPoint(" + mouse.getScreenX() + "," + mouse.getScreenY() + ");");
-                    System.out.println(el);
-                    contextMenu = menuHandler.getContextMenu();
+                    Point2D mousePoint = webView.sceneToLocal(mouse.getSceneX(), mouse.getSceneY());
 
+                    JSObject el = (JSObject) engine.executeScript("document.elementFromPoint(" + mousePoint.getX() + "," + mousePoint.getY() + ");");
+                    contextMenu = menuHandler.getContextMenu(el);
                     contextMenu.show(webView, mouse.getScreenX(), mouse.getScreenY());
                 } else if (contextMenu != null) {
                     contextMenu.hide();
@@ -208,6 +209,7 @@ public class BrowserFXFrame {
             @Override
             public void handle(ContextMenuEvent event) {
                 System.out.println("contextMenu Event");
+
             }
         });
 
@@ -270,65 +272,6 @@ public class BrowserFXFrame {
         return navigatorPane;
     }
 
-    /*private MenuBar createMenuBar() {
-        MenuBar menuBar = new MenuBar();
-        menuBar.setId("menuBar");
-        Menu menuFile = new Menu("File");
-        Menu menuEdit = new Menu("Edit");
-        Menu menuView = new Menu("View");
-        menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
-
-        MenuItem newTabOption = new MenuItem("New Tab");
-        menuFile.getItems().add(newTabOption);
-        newTabOption.setOnAction((ActionEvent evt) -> {
-            parent.addTab();
-        });
-
-        MenuItem saveOption = new MenuItem("Save Page");
-        menuFile.getItems().add(saveOption);
-        saveOption.setOnAction((ActionEvent evt) -> {
-            savePage();
-        });
-        MenuItem printOption = new MenuItem("Print page");
-        menuFile.getItems().add(printOption);
-        printOption.setOnAction((ActionEvent evt) -> {
-            printPage();
-        });
-
-        MenuItem closeOption = new MenuItem("Exit");
-        menuFile.getItems().add(closeOption);
-        closeOption.setOnAction((ActionEvent evt) -> {
-            System.exit(0);
-        });
-        MenuItem searchOption = new MenuItem("Search");
-        menuEdit.getItems().add(searchOption);
-        searchOption.setOnAction((ActionEvent evt) -> {
-            createSearchWindow();
-        });
-
-        CheckMenuItem viewNavigationOption = new CheckMenuItem("NavigationBar");
-        viewNavigationOption.setSelected(true);
-        viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
-            if (new_val) {
-                topPanel.getChildren().add(createNavigatorBar());
-                textURL.setText(currentURL);
-            } else {
-                Node navigatorNode = null;
-                for (Node node : topPanel.getChildren()) {
-                    if (node.getId().equalsIgnoreCase("navigatorBar")) {
-                        navigatorNode = node;
-                    }
-                }
-                if (navigatorNode != null) {
-                    topPanel.getChildren().remove(navigatorNode);
-                }
-            }
-        });
-
-        menuView.getItems().add(viewNavigationOption);
-
-        return menuBar;
-    }*/
     private void loadMenu(MenuButton menu) {
         MenuItem saveOption = new MenuItem("Save Page");
         menu.getItems().add(saveOption);
@@ -416,29 +359,7 @@ public class BrowserFXFrame {
 
     private EventHandler<ActionEvent> goButtonAction() {
         return (ActionEvent event) -> {
-            String route = textURL.getText();
-            try {
-                new URL(route).openStream().close();
-            } catch (MalformedURLException exception) {
-                if (route.contains(" ")) {
-                    searchURL(textURL.getText());
-                    return;
-                }
-                route = "http://" + route + "/";
-                try {
-                    new URL(route).openStream().close();
-                } catch (MalformedURLException ex) {
-                    searchURL(textURL.getText());
-                    return;
-                } catch (IOException ex) {
-                    searchURL(textURL.getText());
-                    return;
-                }
-            } catch (IOException ex) {
-                searchURL(textURL.getText());
-                return;
-            }
-            engine.load(route);
+            loadPage(textURL.getText());
         };
     }
 
@@ -516,6 +437,10 @@ public class BrowserFXFrame {
             engine.print(job);
             job.endJob();
         }
+    }
+
+    public void reloadPage() {
+        engine.load(currentURL);
     }
 
     public void savePage() {
@@ -596,6 +521,31 @@ public class BrowserFXFrame {
                 topPanel.getChildren().remove(navigatorNode);
             }
         }
+    }
+
+    public void loadPage(String url) {
+        try {
+            new URL(url).openStream().close();
+        } catch (MalformedURLException exception) {
+            if (url.contains(" ")) {
+                searchURL(textURL.getText());
+                return;
+            }
+            url = "http://" + url + "/";
+            try {
+                new URL(url).openStream().close();
+            } catch (MalformedURLException ex) {
+                searchURL(textURL.getText());
+                return;
+            } catch (IOException ex) {
+                searchURL(textURL.getText());
+                return;
+            }
+        } catch (IOException ex) {
+            searchURL(textURL.getText());
+            return;
+        }
+        engine.load(url);
     }
 
 }

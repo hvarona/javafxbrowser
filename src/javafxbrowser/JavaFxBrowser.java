@@ -106,7 +106,7 @@ public class JavaFxBrowser extends Application {
         tabs.getTabs().add(buttonTab);
     }
 
-    private void addTab(String url) {
+    public void addTab(String url) {
         BrowserFXFrame newFrame = new BrowserFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");

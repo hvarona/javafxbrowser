@@ -1,5 +1,6 @@
 package javafxbrowser.manager;
 
+import com.sun.webkit.dom.HTMLAnchorElementImpl;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckMenuItem;
@@ -9,6 +10,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafxbrowser.JavaFxBrowser;
 import javafxbrowser.frame.BrowserFXFrame;
+import netscape.javascript.JSObject;
 
 /**
  *
@@ -24,8 +26,32 @@ public class MenuHandler {
         this.browser = browser;
     }
 
-    public ContextMenu getContextMenu() {
+    public ContextMenu getContextMenu(JSObject element) {
         ContextMenu menu = new ContextMenu();
+        MenuItem reloadOption = new MenuItem("Reload Page");
+        reloadOption.setOnAction((ActionEvent evt) -> {
+            browser.reloadPage();
+        });
+        menu.getItems().add(reloadOption);
+
+        if (element instanceof HTMLAnchorElementImpl) {
+            MenuItem openOption = new MenuItem("Open Link");
+            openOption.setOnAction((ActionEvent evt) -> {
+                browser.loadPage(((HTMLAnchorElementImpl) element).getHref());
+            });
+            MenuItem openTabOption = new MenuItem("Open Link in new Tab");
+            openTabOption.setOnAction((ActionEvent evt) -> {
+                parent.addTab(((HTMLAnchorElementImpl) element).getHref());
+
+            });
+            MenuItem saveOption = new MenuItem("Save Link as...");
+
+            saveOption.setOnAction((ActionEvent evt) -> {
+            });
+            menu.getItems().add(openOption);
+            menu.getItems().add(openTabOption);
+            menu.getItems().add(saveOption);
+        }
 
         return menu;
     }
