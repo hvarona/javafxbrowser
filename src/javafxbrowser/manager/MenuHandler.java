@@ -1,6 +1,8 @@
 package javafxbrowser.manager;
 
 import com.sun.webkit.dom.HTMLAnchorElementImpl;
+import com.sun.webkit.dom.HTMLDivElementImpl;
+import com.sun.webkit.dom.HTMLImageElementImpl;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckMenuItem;
@@ -8,6 +10,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafxbrowser.JavaFxBrowser;
 import javafxbrowser.frame.BrowserFXFrame;
 import netscape.javascript.JSObject;
@@ -27,6 +30,7 @@ public class MenuHandler {
     }
 
     public ContextMenu getContextMenu(JSObject element) {
+        System.out.println("Class " + element.getClass());
         ContextMenu menu = new ContextMenu();
         MenuItem reloadOption = new MenuItem("Reload Page");
         reloadOption.setOnAction((ActionEvent evt) -> {
@@ -35,22 +39,28 @@ public class MenuHandler {
         menu.getItems().add(reloadOption);
 
         if (element instanceof HTMLAnchorElementImpl) {
+            String href = ((HTMLAnchorElementImpl) element).getHref();
             MenuItem openOption = new MenuItem("Open Link");
             openOption.setOnAction((ActionEvent evt) -> {
-                browser.loadPage(((HTMLAnchorElementImpl) element).getHref());
+                browser.loadPage(href);
             });
             MenuItem openTabOption = new MenuItem("Open Link in new Tab");
             openTabOption.setOnAction((ActionEvent evt) -> {
-                parent.addTab(((HTMLAnchorElementImpl) element).getHref());
+                parent.addTab(href);
 
             });
             MenuItem saveOption = new MenuItem("Save Link as...");
 
             saveOption.setOnAction((ActionEvent evt) -> {
             });
-            menu.getItems().add(openOption);
-            menu.getItems().add(openTabOption);
-            menu.getItems().add(saveOption);
+            menu.getItems().addAll(new SeparatorMenuItem(), openOption, openTabOption, saveOption);
+        } else if (element instanceof HTMLImageElementImpl) {
+            HTMLImageElementImpl div = (HTMLImageElementImpl) element;
+            MenuItem saveOption = new MenuItem("Save Image as...");
+
+            saveOption.setOnAction((ActionEvent evt) -> {
+            });
+            menu.getItems().addAll(new SeparatorMenuItem(), saveOption);
         }
 
         return menu;

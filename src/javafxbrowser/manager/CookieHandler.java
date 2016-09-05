@@ -18,4 +18,8 @@ public class CookieHandler {
         return manager;
     }
 
+    public void deleteCookies() {
+        manager.getCookieStore().removeAll();
+    }
+
 }
