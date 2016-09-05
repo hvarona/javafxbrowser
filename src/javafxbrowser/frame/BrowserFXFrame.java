@@ -150,9 +150,8 @@ public class BrowserFXFrame {
                     } catch (MalformedURLException ex) {
                         ex.printStackTrace();
                     }
-                } else {
-                    action.titleChangeAction(title);
                 }
+                action.titleChangeAction(title);
             });
         });
 
