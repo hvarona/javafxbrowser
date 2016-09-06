@@ -16,7 +16,6 @@ public class CacheHandler extends URLStreamHandler implements URLStreamHandlerFa
 
     @Override
     public URLStreamHandler createURLStreamHandler(String protocol) {
-        System.out.println("protocol " + protocol);
         if ("http".equals(protocol)) {
             return this;
         }
@@ -27,6 +26,7 @@ public class CacheHandler extends URLStreamHandler implements URLStreamHandlerFa
     @Override
     protected URLConnection openConnection(URL u) throws IOException {
         System.out.println(u.toString());
+        //TODO cache url
         return new HttpURLConnection(u, Proxy.NO_PROXY);
     }
 
