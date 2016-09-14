@@ -62,14 +62,7 @@ import org.w3c.dom.Document;
  */
 public class BrowserFXFrame {
 
-    /*
-     TODO:
-     - MEnu bar
-     - Print option
-     - Save PAge option
-     - Search url textField
-     */
-    private String currentURL = "";
+   private String currentURL = "";
 
     private BorderPane rootPane;
     private VBox topPanel;
