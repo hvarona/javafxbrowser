@@ -37,7 +37,7 @@ public class HistoryFrame {
     public VBox getFrame() {
         final Label label = new Label("History");
         label.setFont(new Font("Arial", 20));
-        table.setEditable(true);
+        table.setEditable(false);
 
         TableColumn dateCol = new TableColumn("Date");
         TableColumn titleCol = new TableColumn("Title");
