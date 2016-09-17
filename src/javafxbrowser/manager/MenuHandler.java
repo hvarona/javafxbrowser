@@ -1,5 +1,6 @@
 package javafxbrowser.manager;
 
+import com.sun.javaws.ui.SplashScreen;
 import com.sun.webkit.dom.HTMLAnchorElementImpl;
 import com.sun.webkit.dom.HTMLDivElementImpl;
 import com.sun.webkit.dom.HTMLImageElementImpl;
@@ -102,13 +103,25 @@ public class MenuHandler {
             browser.createSearchWindow();
         });
 
-        CheckMenuItem viewNavigationOption = new CheckMenuItem("NavigationBar");
+        CheckMenuItem viewNavigationOption = new CheckMenuItem("Navigation Bar");
         viewNavigationOption.setSelected(true);
         viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
             browser.hideShowNavigationBar(new_val);
         });
 
-        menuView.getItems().add(viewNavigationOption);
+        CheckMenuItem showHistory = new CheckMenuItem("History");
+        showHistory.setSelected(false);
+        showHistory.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
+            if (new_val) {
+                browser.showHistoryWindow();
+            } else {
+                browser.hideHistoryWindw();
+            }
+
+        }
+        );
+
+        menuView.getItems().addAll(viewNavigationOption, showHistory);
 
         return menuBar;
     }

@@ -53,6 +53,7 @@ import javafxbrowser.JavaFxBrowser;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
 import javafxbrowser.manager.MenuHandler;
+import javafxbrowser.util.DragResizer;
 import netscape.javascript.JSObject;
 import org.w3c.dom.Document;
 
@@ -62,7 +63,7 @@ import org.w3c.dom.Document;
  */
 public class BrowserFXFrame {
 
-   private String currentURL = "";
+    private String currentURL = "";
 
     private BorderPane rootPane;
     private VBox topPanel;
@@ -538,6 +539,17 @@ public class BrowserFXFrame {
             return;
         }
         engine.load(url);
+    }
+
+    public void showHistoryWindow() {
+        HistoryFrame history = new HistoryFrame(engine.getHistory(), this);
+        VBox vbox = history.getFrame();
+        rootPane.setRight(vbox);
+        DragResizer.makeResizable(vbox);
+    }
+
+    public void hideHistoryWindw() {
+        rootPane.setRight(null);
     }
 
 }
