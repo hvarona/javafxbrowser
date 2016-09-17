@@ -117,6 +117,8 @@ public class ConfigFrame {
     }
 
     private Pane getGeneralFrame() {
+        Label generalLabel = new Label("General Settings");
+        generalLabel.setFont(new Font("Arial", 20));
         VBox answer = new VBox();
         Label homePageLabel = new Label("Home Page : ");
         TextField homePage = new TextField();
@@ -149,6 +151,7 @@ public class ConfigFrame {
         downloadDirectory.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
+                chooser.setInitialDirectory(new File(downloadDirectory.getText()));
                 File directory = chooser.showDialog(parent.getScene().getWindow());
                 if (directory != null) {
                     parent.getConfig().setDefaultDownloadDirectory(directory.getAbsolutePath());
@@ -163,8 +166,17 @@ public class ConfigFrame {
         CheckBox defaultBrowser = new CheckBox();
         defaultBrowser.setSelected(false);
         defaultBrowser.setDisable(true);
+        Label defaultBrowserLabel = new Label("Set as System Default Browser");
+        HBox defaultBrowserhbox = new HBox();
+        defaultBrowserhbox.getChildren().addAll(defaultBrowser, defaultBrowserLabel);
 
-        answer.getChildren().addAll(homePageHbox, defaultDownloadDirectoryHbox);
+        CheckBox newTabEmpty = new CheckBox();
+        newTabEmpty.setSelected(false);
+        Label newTabEmptyLabel = new Label("Open New Tab Empty");
+        HBox newTabEmptyhbox = new HBox();
+        newTabEmptyhbox.getChildren().addAll(newTabEmpty, newTabEmptyLabel);
+
+        answer.getChildren().addAll(generalLabel, homePageHbox, defaultDownloadDirectoryHbox, defaultBrowserhbox, newTabEmptyhbox);
         return answer;
     }
 
@@ -181,7 +193,6 @@ public class ConfigFrame {
         final Label labelDefaultSearch = new Label("Default Search Engine");
         final HBox hbox = new HBox();
         hbox.setSpacing(5);
-        //hbox.setPadding(new Insets(10, 0, 0, 10));
 
         hbox.getChildren().addAll(labelDefaultSearch, defaultSearchEngine);
 
@@ -199,7 +210,6 @@ public class ConfigFrame {
         labelsearchEngines.setFont(new Font("Arial", 20));
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
-        //vbox.setPadding(new Insets(10, 0, 0, 10));
         vbox.getChildren().addAll(hbox, labelsearchEngines, searchEnginesView);
 
         answer.getChildren().addAll(vbox);

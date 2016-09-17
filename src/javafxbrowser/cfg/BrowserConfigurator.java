@@ -10,7 +10,7 @@ import java.util.List;
 public class BrowserConfigurator {
 
     private String homepage = "http://www.google.com/";
-    private String defaultDownloadDirectory;
+    private String defaultDownloadDirectory = System.getProperty("user.home");
 
     private List<SearchEngine> searchEngines = new ArrayList();
     private SearchEngine defaultSearchEngine;
