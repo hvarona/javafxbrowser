@@ -82,7 +82,6 @@ public class BrowserFXFrame {
 
     private String lastFindText = "";
 
-    private BrowserConfigurator config;
     private MenuHandler menuHandler;
     private ContextMenu contextMenu;
 
@@ -90,15 +89,13 @@ public class BrowserFXFrame {
 
     private final List<WebEngineChangeAction> changeActions = new ArrayList();
 
-    public synchronized Parent getRootPane(BrowserConfigurator config, JavaFxBrowser parent) {
+    public synchronized Parent getRootPane(JavaFxBrowser parent) {
         if (rootPane != null) {
             return rootPane;
         }
         menuHandler = new MenuHandler(parent, this);
 
         this.parent = parent;
-
-        this.config = config;
 
         rootPane = new BorderPane();
         topPanel = new VBox();
@@ -441,7 +438,11 @@ public class BrowserFXFrame {
         if (doc != null) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save Page File");
-            fileChooser.setInitialDirectory(engine.getUserDataDirectory());
+            if (parent.getConfig().getDefaultDownloadDirectory() == null) {
+                fileChooser.setInitialDirectory(engine.getUserDataDirectory());
+            } else {
+                fileChooser.setInitialDirectory(new File(parent.getConfig().getDefaultDownloadDirectory()));
+            }
             String fileExtension = "html";
             try {
 
@@ -494,7 +495,7 @@ public class BrowserFXFrame {
     }
 
     private void searchURL(String searchText) {
-        String url = this.config.getDefaultSearchEngine().getUrl();
+        String url = parent.getConfig().getDefaultSearchEngine().getUrl();
         url = url.replaceAll("%s", "\"" + searchText + "\"");
         engine.load(url);
     }

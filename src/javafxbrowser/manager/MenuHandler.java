@@ -121,7 +121,12 @@ public class MenuHandler {
         }
         );
 
-        menuView.getItems().addAll(viewNavigationOption, showHistory);
+        MenuItem settingOption = new MenuItem("Settings");
+        settingOption.setOnAction((ActionEvent evt) -> {
+            parent.addSettingTab();
+        });
+
+        menuView.getItems().addAll(viewNavigationOption, showHistory, settingOption);
 
         return menuBar;
     }

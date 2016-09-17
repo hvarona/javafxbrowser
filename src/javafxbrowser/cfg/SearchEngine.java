@@ -30,4 +30,11 @@ public class SearchEngine {
         this.url = url;
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+    
+    
+
 }

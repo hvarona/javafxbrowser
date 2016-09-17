@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.frame.BrowserFXFrame;
+import javafxbrowser.frame.ConfigFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
@@ -29,6 +30,10 @@ public class JavaFxBrowser extends Application {
 
     private CacheHandler cacheHandler;
     private CookieHandler cookieHandler;
+
+    private Scene scene;
+
+    private Tab settingTab;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -53,7 +58,7 @@ public class JavaFxBrowser extends Application {
         undecorator.getStylesheets().add("skin/undecorator.css");
         Node menu = undecorator.lookup("#StageMenu");
         menu.setVisible(false);
-        Scene scene = new Scene(undecorator);
+        scene = new Scene(undecorator);
         scene.setFill(Color.TRANSPARENT);
 
         //Scene scene = new Scene(tabs);
@@ -70,7 +75,7 @@ public class JavaFxBrowser extends Application {
         BrowserFXFrame newFrame = new BrowserFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
         tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(defaultConfig, this));
+        tab.setContent(newFrame.getRootPane(this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));
@@ -88,6 +93,90 @@ public class JavaFxBrowser extends Application {
             }
         });
         tabs.getSelectionModel().select(tab);
+        if (tabs.getTabs().size() > 1) {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(true);
+            });
+        } else {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(false);
+            });
+        }
+        Tab buttonTab = new Tab();
+        buttonTab.setText("+");
+        buttonTab.setClosable(false);
+        buttonTab.setOnSelectionChanged((Event event) -> {
+            addTab();
+        });
+        tabs.getTabs().add(buttonTab);
+        newFrame.loadPage(defaultConfig.getHomepage());
+    }
+
+    public void addTab(String url) {
+        BrowserFXFrame newFrame = new BrowserFXFrame();
+        Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
+        tab.setText("New Window");
+        tab.setContent(newFrame.getRootPane(this));
+        newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
+            tab.setText(newValue);
+        }));
+        tab.setOnSelectionChanged((Event event) -> {
+        });
+        tab.setOnClosed((Event event) -> {
+            if (tabs.getTabs().size() > 2) {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(true);
+                });
+            } else {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(false);
+                });
+            }
+        });
+        tabs.getSelectionModel().select(tab);
+        if (tabs.getTabs().size() > 1) {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(true);
+            });
+        } else {
+            tabs.getTabs().stream().forEach((tb) -> {
+                tb.setClosable(false);
+            });
+        }
+        Tab buttonTab = new Tab();
+        buttonTab.setText("+");
+        buttonTab.setClosable(false);
+        buttonTab.setOnSelectionChanged((Event event) -> {
+            addTab();
+        });
+        tabs.getTabs().add(buttonTab);
+        newFrame.getEngine().load(defaultConfig.getHomepage());
+    }
+
+    public void addSettingTab() {
+        if (settingTab != null) {
+            tabs.getSelectionModel().select(settingTab);
+            return;
+        }
+        ConfigFrame configFrame = new ConfigFrame(this);
+        settingTab = tabs.getTabs().get(tabs.getTabs().size() - 1);
+        settingTab.setText("Settings");
+        settingTab.setContent(configFrame.getFrame());
+        settingTab.setOnSelectionChanged((Event event) -> {
+        });
+        settingTab.setOnClosed((Event event) -> {
+            if (tabs.getTabs().size() > 2) {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(true);
+                });
+            } else {
+                tabs.getTabs().stream().forEach((tb) -> {
+                    tb.setClosable(false);
+                });
+            }
+            settingTab = null;
+        });
+        tabs.getSelectionModel().select(settingTab);
         if (tabs.getTabs().size() > 1) {
             tabs.getTabs().stream().forEach((tb) -> {
                 tb.setClosable(true);
@@ -106,45 +195,12 @@ public class JavaFxBrowser extends Application {
         tabs.getTabs().add(buttonTab);
     }
 
-    public void addTab(String url) {
-        BrowserFXFrame newFrame = new BrowserFXFrame();
-        Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
-        tab.setText("New Window");
-        tab.setContent(newFrame.getRootPane(defaultConfig, this));
-        newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
-            tab.setText(newValue);
-        }));
-        tab.setOnSelectionChanged((Event event) -> {
-        });
-        tab.setOnClosed((Event event) -> {
-            if (tabs.getTabs().size() > 2) {
-                tabs.getTabs().stream().forEach((tb) -> {
-                    tb.setClosable(true);
-                });
-            } else {
-                tabs.getTabs().stream().forEach((tb) -> {
-                    tb.setClosable(false);
-                });
-            }
-        });
-        tabs.getSelectionModel().select(tab);
-        if (tabs.getTabs().size() > 1) {
-            tabs.getTabs().stream().forEach((tb) -> {
-                tb.setClosable(true);
-            });
-        } else {
-            tabs.getTabs().stream().forEach((tb) -> {
-                tb.setClosable(false);
-            });
-        }
-        Tab buttonTab = new Tab();
-        buttonTab.setText("+");
-        buttonTab.setClosable(false);
-        buttonTab.setOnSelectionChanged((Event event) -> {
-            addTab();
-        });
-        tabs.getTabs().add(buttonTab);
-        newFrame.getEngine().load(url);
+    public BrowserConfigurator getConfig() {
+        return defaultConfig;
+    }
+
+    public Scene getScene() {
+        return scene;
     }
 
     /**
