@@ -15,6 +15,8 @@ public class BrowserConfigurator {
     private List<SearchEngine> searchEngines = new ArrayList();
     private SearchEngine defaultSearchEngine;
 
+    private boolean openNewTabEmpty = false;
+
     public BrowserConfigurator() {
         createSampleSearchEngines();
     }
@@ -57,6 +59,14 @@ public class BrowserConfigurator {
 
     public void setDefaultSearchEngine(SearchEngine defaultSearchEngine) {
         this.defaultSearchEngine = defaultSearchEngine;
+    }
+
+    public boolean isOpenNewTabEmpty() {
+        return openNewTabEmpty;
+    }
+
+    public void setOpenNewTabEmpty(boolean openNewTabEmpty) {
+        this.openNewTabEmpty = openNewTabEmpty;
     }
 
 }

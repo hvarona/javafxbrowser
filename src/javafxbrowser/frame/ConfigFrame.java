@@ -5,8 +5,13 @@ import java.util.List;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -17,6 +22,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
@@ -32,6 +38,8 @@ import javafxbrowser.cfg.SearchEngine;
 public class ConfigFrame {
 
     private final JavaFxBrowser parent;
+
+    private final Font titleFont = new Font("Arial", 20);
 
     public ConfigFrame(JavaFxBrowser parent) {
         this.parent = parent;
@@ -89,15 +97,15 @@ public class ConfigFrame {
     }
 
     /**
-     * General HomePage Download Directory Default Browser Tabs options
-     * Accesibility Options Check Spell
+     * General TODO Default Browser TODO Tabs options TODO Accesibility Options
+     * TODO Check Spell
      *
      * @return
      */
     private Pane getGeneralFrame() {
         Label generalLabel = new Label("General Settings");
-        generalLabel.setFont(new Font("Arial", 20));
-        VBox answer = new VBox();
+        generalLabel.setFont(titleFont);
+
         Label homePageLabel = new Label("Home Page : ");
         TextField homePage = new TextField();
         homePage.setText(parent.getConfig().getHomepage());
@@ -107,8 +115,6 @@ public class ConfigFrame {
                 parent.getConfig().setHomepage(homePage.getText());
             }
         }));
-        HBox homePageHbox = new HBox();
-        homePageHbox.getChildren().addAll(homePageLabel, homePage);
 
         Label downloadDirectoryLabel = new Label("Download Directory : ");
         TextField downloadDirectory = new TextField();
@@ -135,35 +141,50 @@ public class ConfigFrame {
 
             }
         });
-        HBox defaultDownloadDirectoryHbox = new HBox();
-        defaultDownloadDirectoryHbox.getChildren().addAll(downloadDirectoryLabel, downloadDirectory);
 
         CheckBox defaultBrowser = new CheckBox();
         defaultBrowser.setSelected(false);
         defaultBrowser.setDisable(true);
         Label defaultBrowserLabel = new Label("Set as System Default Browser");
-        HBox defaultBrowserhbox = new HBox();
-        defaultBrowserhbox.getChildren().addAll(defaultBrowser, defaultBrowserLabel);
 
         CheckBox newTabEmpty = new CheckBox();
-        newTabEmpty.setSelected(false);
+        newTabEmpty.setSelected(parent.getConfig().isOpenNewTabEmpty());
+        newTabEmpty.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                parent.getConfig().setOpenNewTabEmpty(newTabEmpty.isSelected());
+            }
+        });
         Label newTabEmptyLabel = new Label("Open New Tab Empty");
-        HBox newTabEmptyhbox = new HBox();
-        newTabEmptyhbox.getChildren().addAll(newTabEmpty, newTabEmptyLabel);
 
-        answer.getChildren().addAll(generalLabel, homePageHbox, defaultDownloadDirectoryHbox, defaultBrowserhbox, newTabEmptyhbox);
-        answer.setAlignment(Pos.TOP_CENTER);
-        return answer;
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(5);
+        gridPane.setVgap(15);
+        gridPane.setPadding(new Insets(0, 10, 0, 10));
+
+        gridPane.add(generalLabel, 0, 0, 2, 1);
+        GridPane.setHalignment(generalLabel, HPos.CENTER);
+        gridPane.add(homePageLabel, 0, 1);
+        gridPane.add(homePage, 1, 1);
+        gridPane.add(downloadDirectoryLabel, 0, 2);
+        gridPane.add(downloadDirectory, 1, 2);
+        gridPane.add(defaultBrowserLabel, 0, 3);
+        gridPane.add(defaultBrowser, 1, 3);
+        gridPane.add(newTabEmptyLabel, 0, 4);
+        gridPane.add(newTabEmpty, 1, 4);
+        gridPane.setAlignment(Pos.TOP_CENTER);
+
+        return gridPane;
     }
 
     /**
-     * Search -Default Search Motor -List Search Mtor (add/Edit(delete)
+     * Search TODO delete
      *
      * @return
      */
     private Pane getSearchFrame() {
         Label titleLabel = new Label("Search Engine Settings");
-        titleLabel.setFont(new Font("Arial", 20));
+        titleLabel.setFont(titleFont);
         List<SearchEngine> searchEngines = parent.getConfig().getSearchEngines();
 
         ComboBox<SearchEngine> defaultSearchEngine = new ComboBox();
@@ -173,10 +194,14 @@ public class ConfigFrame {
             parent.getConfig().setDefaultSearchEngine(defaultSearchEngine.getSelectionModel().getSelectedItem());
         });
         final Label labelDefaultSearch = new Label("Default Search Engine");
-        final HBox hbox = new HBox();
-        hbox.setSpacing(5);
 
-        hbox.getChildren().addAll(labelDefaultSearch, defaultSearchEngine);
+        final HBox defaultSearchhbox = new HBox();
+        defaultSearchhbox.setSpacing(5);
+
+        defaultSearchhbox.getChildren().addAll(labelDefaultSearch, defaultSearchEngine);
+
+        final Label labelsearchEngines = new Label("Search Engines List");
+        labelsearchEngines.setFont(new Font("Arial", 16));
 
         TableView searchEnginesView = new TableView();
         searchEnginesView.setEditable(true);
@@ -186,25 +211,45 @@ public class ConfigFrame {
         urlCol.setCellValueFactory(new PropertyValueFactory<SearchEngine, String>("url"));
 
         searchEnginesView.getColumns().addAll(nameCol, urlCol);
-        searchEnginesView.setItems(FXCollections.observableList(searchEngines));
+        ObservableList<SearchEngine> searchEnginesList = FXCollections.observableList(searchEngines);
+        searchEnginesView.setItems(searchEnginesList);
 
-        final Label labelsearchEngines = new Label("Search Engines ");
-        labelsearchEngines.setFont(new Font("Arial", 20));
+        final Label labeladdSearchEngines = new Label("Add Search Engine");
+        labeladdSearchEngines.setFont(new Font("Arial", 16));
+
+        TextField addName = new TextField();
+        TextField addURL = new TextField();
+        Button addButton = new Button("Add new Search Engine");
+        addButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (addName.getText() != null && addURL.getText() != null) {
+                    SearchEngine newEngine = new SearchEngine(addName.getText(), addURL.getText());
+                    defaultSearchEngine.getItems().add(newEngine);
+                    searchEnginesList.add(newEngine);
+                }
+            }
+        });
+
+        final HBox editHbox = new HBox();
+
+        editHbox.getChildren().addAll(addName, addURL, addButton);
+
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
-        vbox.getChildren().addAll(titleLabel, hbox, labelsearchEngines, searchEnginesView);
+        vbox.getChildren().addAll(titleLabel, defaultSearchhbox, labelsearchEngines, searchEnginesView, labeladdSearchEngines, editHbox);
         vbox.setAlignment(Pos.TOP_CENTER);
         return vbox;
     }
 
     /**
-     * Content -Popup window options -Languages -Font & Color
+     * Content TODO Popup window options TODO Languages TODO Font & Color
      *
      * @return
      */
     private Pane getContentFrame() {
         Label titleLabel = new Label("Content Settings");
-        titleLabel.setFont(new Font("Arial", 20));
+        titleLabel.setFont(titleFont);
         VBox answer = new VBox();
         answer.setAlignment(Pos.TOP_CENTER);
         answer.getChildren().addAll(titleLabel);
@@ -212,13 +257,13 @@ public class ConfigFrame {
     }
 
     /**
-     * Applications -Contentt-type -> Action
+     * Applications TODO Contentt-type -> Action
      *
      * @return
      */
     private Pane getApplicationFrame() {
         Label titleLabel = new Label("Applications Settings");
-        titleLabel.setFont(new Font("Arial", 20));
+        titleLabel.setFont(titleFont);
         VBox answer = new VBox();
         answer.setAlignment(Pos.TOP_CENTER);
         answer.getChildren().addAll(titleLabel);
@@ -226,16 +271,28 @@ public class ConfigFrame {
     }
 
     /**
-     * Privacy -UserData (memory Database)
+     * Privacy TODO UserData TODO Database options
      *
      * @return
      */
     private Pane getPrivacyFrame() {
         Label titleLabel = new Label("Privacy Settings");
-        titleLabel.setFont(new Font("Arial", 20));
-        VBox answer = new VBox();
+        titleLabel.setFont(titleFont);
+
+        CheckBox memoryOnlyData = new CheckBox();
+        memoryOnlyData.setSelected(true);
+        memoryOnlyData.setDisable(true);
+        Label memoryOnlyDataLabel = new Label(" Memory Only");
+
+        GridPane answer = new GridPane();
         answer.setAlignment(Pos.TOP_CENTER);
-        answer.getChildren().addAll(titleLabel);
+        answer.setHgap(5);
+        answer.setVgap(15);
+        answer.setPadding(new Insets(0, 10, 0, 10));
+        answer.add(titleLabel, 0, 0, 2, 1);
+        GridPane.setHalignment(titleLabel, HPos.CENTER);
+        answer.add(memoryOnlyDataLabel, 0, 1);
+        answer.add(memoryOnlyData, 1, 1);
         return answer;
     }
 
@@ -246,7 +303,7 @@ public class ConfigFrame {
      */
     private Pane getSecurityFrame() {
         Label titleLabel = new Label("Security Settings");
-        titleLabel.setFont(new Font("Arial", 20));
+        titleLabel.setFont(titleFont);
         VBox answer = new VBox();
         answer.setAlignment(Pos.TOP_CENTER);
         answer.getChildren().addAll(titleLabel);
@@ -254,16 +311,26 @@ public class ConfigFrame {
     }
 
     /**
-     * Custom Menu -Enable Menu Buton -Enable /Disbale Menu Options
+     * Custom Menu  Buton Enable Menu Bar TODO Enable disable buttons
      *
      * @return
      */
     private Pane getCustomFrame() {
         Label titleLabel = new Label("Custom Settings");
-        titleLabel.setFont(new Font("Arial", 20));
-        VBox answer = new VBox();
+        titleLabel.setFont(titleFont);
+        
+        CheckBox menuBarEnable = new CheckBox("Menu Bar Enable");
+        CheckBox menuButtonEnable = new CheckBox(" Menu Button Enable");
+        
+        
+        GridPane answer = new GridPane();
         answer.setAlignment(Pos.TOP_CENTER);
-        answer.getChildren().addAll(titleLabel);
+        answer.setHgap(5);
+        answer.setVgap(15);
+        answer.setPadding(new Insets(0, 10, 0, 10));
+        answer.add(menuBarEnable, 0, 1);
+        answer.add(menuButtonEnable, 0, 2);
+        GridPane.setHalignment(titleLabel, HPos.CENTER);
         return answer;
     }
 
@@ -274,7 +341,7 @@ public class ConfigFrame {
      */
     private Pane getNetworkFrame() {
         Label titleLabel = new Label("Network Settings");
-        titleLabel.setFont(new Font("Arial", 20));
+        titleLabel.setFont(titleFont);
         VBox answer = new VBox();
         answer.setAlignment(Pos.TOP_CENTER);
         answer.getChildren().addAll(titleLabel);
@@ -288,7 +355,7 @@ public class ConfigFrame {
      */
     private Pane getAboutFrame() {
         Label titleLabel = new Label("About");
-        titleLabel.setFont(new Font("Arial", 20));
+        titleLabel.setFont(titleFont);
         VBox answer = new VBox();
         answer.setAlignment(Pos.TOP_CENTER);
         answer.getChildren().addAll(titleLabel);

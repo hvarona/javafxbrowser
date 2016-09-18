@@ -68,7 +68,7 @@ public class JavaFxBrowser extends Application {
         primaryStage.setTitle("No title bar");
         primaryStage.setScene(scene);
         primaryStage.show();
-        addTab("http://www.google.com/"); //homePage
+        addTab();
     }
 
     public void addTab() {
@@ -109,7 +109,9 @@ public class JavaFxBrowser extends Application {
             addTab();
         });
         tabs.getTabs().add(buttonTab);
-        newFrame.loadPage(defaultConfig.getHomepage());
+        if (!defaultConfig.isOpenNewTabEmpty()) {
+            newFrame.loadPage(defaultConfig.getHomepage());
+        }
     }
 
     public void addTab(String url) {
