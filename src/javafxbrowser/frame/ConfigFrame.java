@@ -6,6 +6,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -30,49 +31,13 @@ import javafxbrowser.cfg.SearchEngine;
  */
 public class ConfigFrame {
 
-    /*
-     General
-     -HomePage
-     -Download Directory
-     -Default Browser
-     -Tabs options
-     -Accesibility Options
-     -Check Spell
-     Search
-     -Default Search Motor
-     -List Search Mtor (add/Edit(delete)
-     Content
-     -Popup window options
-     -Languages
-     -Font & Color
-     Applications
-     -Contentt-type -> Action
-     Privacy
-     -UserData (memory Database)
-     Security
-     -Block Sites
-     -Login & Password
-     -Certificates
-     Custom Menu
-     -Enable Menu Buton
-     -Enable /Disbale Menu Options
-     Network
-     -Proxy
-     -Cache
-     Update
-     -Update this WebBrowser
-    
-     */
-    private JavaFxBrowser parent;
-
-    private boolean isSelectingDirectory = false;
+    private final JavaFxBrowser parent;
 
     public ConfigFrame(JavaFxBrowser parent) {
         this.parent = parent;
     }
 
-    public Pane getFrame() {
-        Pane answer = new Pane();
+    public TabPane getFrame() {
         TabPane Options = new TabPane();
         Tab generalOption = new Tab("General");
         generalOption.setContent(getGeneralFrame());
@@ -107,15 +72,28 @@ public class ConfigFrame {
         networkOption.setClosable(false);
 
         Tab updateOption = new Tab("Update");
-        updateOption.setContent(getUpdateFrame());
+        updateOption.setContent(getAboutFrame());
         updateOption.setClosable(false);
 
-        Options.getTabs().addAll(generalOption, searchOption, securityOption, contentOption, applicationOption, privacyOption, customOption, networkOption, updateOption);
+        Options.getTabs().add(generalOption);
+        Options.getTabs().add(searchOption);
+        Options.getTabs().add(securityOption);
+        Options.getTabs().add(contentOption);
+        //Options.getTabs().add(applicationOption);
+        Options.getTabs().add(privacyOption);
+        Options.getTabs().add(customOption);
+        Options.getTabs().add(networkOption);
+        Options.getTabs().add(updateOption);
         Options.getSelectionModel().select(generalOption);
-        answer.getChildren().add(Options);
-        return answer;
+        return Options;
     }
 
+    /**
+     * General HomePage Download Directory Default Browser Tabs options
+     * Accesibility Options Check Spell
+     *
+     * @return
+     */
     private Pane getGeneralFrame() {
         Label generalLabel = new Label("General Settings");
         generalLabel.setFont(new Font("Arial", 20));
@@ -148,16 +126,13 @@ public class ConfigFrame {
         } else {
             chooser.setInitialDirectory(new File(parent.getConfig().getDefaultDownloadDirectory()));
         }
-        downloadDirectory.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                chooser.setInitialDirectory(new File(downloadDirectory.getText()));
-                File directory = chooser.showDialog(parent.getScene().getWindow());
-                if (directory != null) {
-                    parent.getConfig().setDefaultDownloadDirectory(directory.getAbsolutePath());
-                    downloadDirectory.setText(directory.getAbsolutePath());
+        downloadDirectory.setOnMouseClicked((MouseEvent event) -> {
+            chooser.setInitialDirectory(new File(downloadDirectory.getText()));
+            File directory = chooser.showDialog(parent.getScene().getWindow());
+            if (directory != null) {
+                parent.getConfig().setDefaultDownloadDirectory(directory.getAbsolutePath());
+                downloadDirectory.setText(directory.getAbsolutePath());
 
-                }
             }
         });
         HBox defaultDownloadDirectoryHbox = new HBox();
@@ -177,11 +152,18 @@ public class ConfigFrame {
         newTabEmptyhbox.getChildren().addAll(newTabEmpty, newTabEmptyLabel);
 
         answer.getChildren().addAll(generalLabel, homePageHbox, defaultDownloadDirectoryHbox, defaultBrowserhbox, newTabEmptyhbox);
+        answer.setAlignment(Pos.TOP_CENTER);
         return answer;
     }
 
+    /**
+     * Search -Default Search Motor -List Search Mtor (add/Edit(delete)
+     *
+     * @return
+     */
     private Pane getSearchFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Search Engine Settings");
+        titleLabel.setFont(new Font("Arial", 20));
         List<SearchEngine> searchEngines = parent.getConfig().getSearchEngines();
 
         ComboBox<SearchEngine> defaultSearchEngine = new ComboBox();
@@ -210,45 +192,106 @@ public class ConfigFrame {
         labelsearchEngines.setFont(new Font("Arial", 20));
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
-        vbox.getChildren().addAll(hbox, labelsearchEngines, searchEnginesView);
-
-        answer.getChildren().addAll(vbox);
-
-        return answer;
+        vbox.getChildren().addAll(titleLabel, hbox, labelsearchEngines, searchEnginesView);
+        vbox.setAlignment(Pos.TOP_CENTER);
+        return vbox;
     }
 
+    /**
+     * Content -Popup window options -Languages -Font & Color
+     *
+     * @return
+     */
     private Pane getContentFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Content Settings");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 
+    /**
+     * Applications -Contentt-type -> Action
+     *
+     * @return
+     */
     private Pane getApplicationFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Applications Settings");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 
+    /**
+     * Privacy -UserData (memory Database)
+     *
+     * @return
+     */
     private Pane getPrivacyFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Privacy Settings");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 
+    /**
+     * Security -Block Sites -Login & Password -Certificates
+     *
+     * @return
+     */
     private Pane getSecurityFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Security Settings");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 
+    /**
+     * Custom Menu -Enable Menu Buton -Enable /Disbale Menu Options
+     *
+     * @return
+     */
     private Pane getCustomFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Custom Settings");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 
+    /**
+     * Network -Proxy -Cache
+     *
+     * @return
+     */
     private Pane getNetworkFrame() {
-        Pane answer = new Pane();
+        Label titleLabel = new Label("Network Settings");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 
-    private Pane getUpdateFrame() {
-        Pane answer = new Pane();
+    /**
+     * About Version Update this WebBrowser
+     *
+     * @return
+     */
+    private Pane getAboutFrame() {
+        Label titleLabel = new Label("About");
+        titleLabel.setFont(new Font("Arial", 20));
+        VBox answer = new VBox();
+        answer.setAlignment(Pos.TOP_CENTER);
+        answer.getChildren().addAll(titleLabel);
         return answer;
     }
 }
