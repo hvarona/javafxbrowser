@@ -11,6 +11,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -208,6 +209,19 @@ public class BrowserFXFrame {
             public WebEngine call(PopupFeatures param) {
                 // Open Link in new Window option
                 return null;
+            }
+        });
+
+        engine.getHistory().getEntries().addListener(new ListChangeListener<WebHistory.Entry>() {
+
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends WebHistory.Entry> c) {
+                if (c.next()) {
+                    for (WebHistory.Entry entry : c.getAddedSubList()) {
+                        parent.addHisotryEntry(entry);
+                    }
+                }
+
             }
         });
 
@@ -543,7 +557,7 @@ public class BrowserFXFrame {
     }
 
     public void showHistoryWindow() {
-        HistoryFrame history = new HistoryFrame(engine.getHistory(), this);
+        HistoryFrame history = new HistoryFrame(this);
         VBox vbox = history.getFrame();
         rootPane.setRight(vbox);
         DragResizer.makeResizable(vbox);
@@ -551,6 +565,10 @@ public class BrowserFXFrame {
 
     public void hideHistoryWindw() {
         rootPane.setRight(null);
+    }
+
+    public JavaFxBrowser getParent() {
+        return parent;
     }
 
 }

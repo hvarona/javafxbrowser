@@ -142,12 +142,11 @@ public class ConfigFrame {
             }
         });
 
-        CheckBox defaultBrowser = new CheckBox();
+        CheckBox defaultBrowser = new CheckBox("Set as System Default Browser");
         defaultBrowser.setSelected(false);
         defaultBrowser.setDisable(true);
-        Label defaultBrowserLabel = new Label("Set as System Default Browser");
 
-        CheckBox newTabEmpty = new CheckBox();
+        CheckBox newTabEmpty = new CheckBox("Open New Tab Empty");
         newTabEmpty.setSelected(parent.getConfig().isOpenNewTabEmpty());
         newTabEmpty.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -155,7 +154,6 @@ public class ConfigFrame {
                 parent.getConfig().setOpenNewTabEmpty(newTabEmpty.isSelected());
             }
         });
-        Label newTabEmptyLabel = new Label("Open New Tab Empty");
 
         GridPane gridPane = new GridPane();
         gridPane.setHgap(5);
@@ -168,10 +166,8 @@ public class ConfigFrame {
         gridPane.add(homePage, 1, 1);
         gridPane.add(downloadDirectoryLabel, 0, 2);
         gridPane.add(downloadDirectory, 1, 2);
-        gridPane.add(defaultBrowserLabel, 0, 3);
-        gridPane.add(defaultBrowser, 1, 3);
-        gridPane.add(newTabEmptyLabel, 0, 4);
-        gridPane.add(newTabEmpty, 1, 4);
+        gridPane.add(defaultBrowser, 0, 3, 2, 1);
+        gridPane.add(newTabEmpty, 0, 4, 2, 1);
         gridPane.setAlignment(Pos.TOP_CENTER);
 
         return gridPane;
@@ -311,18 +307,17 @@ public class ConfigFrame {
     }
 
     /**
-     * Custom Menu  Buton Enable Menu Bar TODO Enable disable buttons
+     * Custom Menu Buton Enable Menu Bar TODO Enable disable buttons
      *
      * @return
      */
     private Pane getCustomFrame() {
         Label titleLabel = new Label("Custom Settings");
         titleLabel.setFont(titleFont);
-        
+
         CheckBox menuBarEnable = new CheckBox("Menu Bar Enable");
         CheckBox menuButtonEnable = new CheckBox(" Menu Button Enable");
-        
-        
+
         GridPane answer = new GridPane();
         answer.setAlignment(Pos.TOP_CENTER);
         answer.setHgap(5);

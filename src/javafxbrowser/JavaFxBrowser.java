@@ -3,13 +3,18 @@ package javafxbrowser;
 import insidefx.undecorator.Undecorator;
 import java.net.CookieManager;
 import java.net.URL;
+import java.text.DateFormat;
+import java.util.Date;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebHistory;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafxbrowser.cfg.BrowserConfigurator;
@@ -18,6 +23,7 @@ import javafxbrowser.frame.ConfigFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
+import javafxbrowser.util.HistoryEntry;
 
 /**
  *
@@ -34,6 +40,7 @@ public class JavaFxBrowser extends Application {
     private Scene scene;
 
     private Tab settingTab;
+    private final ObservableList<HistoryEntry> webHistory = FXCollections.observableArrayList();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -203,6 +210,23 @@ public class JavaFxBrowser extends Application {
 
     public Scene getScene() {
         return scene;
+    }
+
+    public void addHisotryEntry(WebHistory.Entry entry) {
+        String url = entry.getUrl();
+        String title = entry.getTitle();
+        DateFormat format = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+        String date;
+        if (entry.getLastVisitedDate() != null) {
+            date = format.format(entry.getLastVisitedDate());
+        } else {
+            date = format.format(new Date());
+        }
+        webHistory.add(new HistoryEntry(date, "", title, url));
+    }
+
+    public ObservableList<HistoryEntry> getWebHistory() {
+        return webHistory;
     }
 
     /**
