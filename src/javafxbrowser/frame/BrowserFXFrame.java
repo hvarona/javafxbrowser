@@ -292,6 +292,12 @@ public class BrowserFXFrame {
         printOption.setOnAction((ActionEvent evt) -> {
             printPage();
         });
+        
+        MenuItem swttingOption = new MenuItem("Settings");
+        menu.getItems().add(swttingOption);
+        swttingOption.setOnAction((ActionEvent evt) -> {
+            parent.addSettingTab();
+        });
 
         MenuItem closeOption = new MenuItem("Exit");
         menu.getItems().add(closeOption);

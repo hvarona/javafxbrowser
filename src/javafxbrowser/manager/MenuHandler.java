@@ -63,6 +63,12 @@ public class MenuHandler {
             });
             menu.getItems().addAll(new SeparatorMenuItem(), saveOption);
         }
+        MenuItem settingOption = new MenuItem("Open Setting Tab");
+
+        settingOption.setOnAction((ActionEvent evt) -> {
+            parent.addSettingTab();
+        });
+        menu.getItems().addAll(new SeparatorMenuItem(), settingOption);
 
         return menu;
     }

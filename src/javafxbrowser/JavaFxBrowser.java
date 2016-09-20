@@ -6,6 +6,8 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.util.Date;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -214,7 +216,7 @@ public class JavaFxBrowser extends Application {
 
     public void addHisotryEntry(WebHistory.Entry entry) {
         String url = entry.getUrl();
-        String title = entry.getTitle();
+        //String title = entry.getTitle();
         DateFormat format = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
         String date;
         if (entry.getLastVisitedDate() != null) {
@@ -222,7 +224,15 @@ public class JavaFxBrowser extends Application {
         } else {
             date = format.format(new Date());
         }
-        webHistory.add(new HistoryEntry(date, "", title, url));
+        HistoryEntry addEntry = new HistoryEntry(date, "", "", url);
+        entry.titleProperty().addListener(new ChangeListener<String>() {
+
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                addEntry.setTitle(newValue);
+            }
+        });
+        webHistory.add(addEntry);
     }
 
     public ObservableList<HistoryEntry> getWebHistory() {
