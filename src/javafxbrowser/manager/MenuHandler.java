@@ -110,7 +110,7 @@ public class MenuHandler {
         });
 
         CheckMenuItem viewNavigationOption = new CheckMenuItem("Navigation Bar");
-        viewNavigationOption.setSelected(true);
+        viewNavigationOption.setSelected(parent.getConfig().isShowNavigationBar());
         viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
             browser.hideShowNavigationBar(new_val);
         });

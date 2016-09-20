@@ -100,9 +100,13 @@ public class BrowserFXFrame {
 
         rootPane = new BorderPane();
         topPanel = new VBox();
-        //topPanel.getChildren().add(createMenuBar());
-        topPanel.getChildren().add(menuHandler.getMenuBar());
-        topPanel.getChildren().add(createNavigatorBar());
+        
+        if (parent.getConfig().isShowMenuBar()) {
+            topPanel.getChildren().add(menuHandler.getMenuBar());
+        }
+        if (parent.getConfig().isShowNavigationBar()) {
+            topPanel.getChildren().add(createNavigatorBar());
+        }
         rootPane.setTop(topPanel);
 
         createBottomPane();
@@ -292,7 +296,7 @@ public class BrowserFXFrame {
         printOption.setOnAction((ActionEvent evt) -> {
             printPage();
         });
-        
+
         MenuItem swttingOption = new MenuItem("Settings");
         menu.getItems().add(swttingOption);
         swttingOption.setOnAction((ActionEvent evt) -> {
@@ -350,7 +354,6 @@ public class BrowserFXFrame {
             centerPane.getChildren().remove(hbox);
         });
         hbox.getChildren().addAll(searchText, prevSearchButton, nextSearchButton, closSearchButton);
-        //AnchorPane.setRightAnchor(hbox, 5.0);
         centerPane.getChildren().add(hbox);
     }
 
@@ -533,6 +536,22 @@ public class BrowserFXFrame {
             }
             if (navigatorNode != null) {
                 topPanel.getChildren().remove(navigatorNode);
+            }
+        }
+    }
+
+    public void hideShowMenuBar(boolean show) {
+        if (show) {
+            topPanel.getChildren().add(0, menuHandler.getMenuBar());
+        } else {
+            Node menuNode = null;
+            for (Node node : topPanel.getChildren()) {
+                if (node.getId().equalsIgnoreCase("menuBar")) {
+                    menuNode = node;
+                }
+            }
+            if (menuNode != null) {
+                topPanel.getChildren().remove(menuNode);
             }
         }
     }

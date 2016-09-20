@@ -316,7 +316,26 @@ public class ConfigFrame {
         titleLabel.setFont(titleFont);
 
         CheckBox menuBarEnable = new CheckBox("Menu Bar Enable");
-        CheckBox menuButtonEnable = new CheckBox(" Menu Button Enable");
+        menuBarEnable.setSelected(parent.getConfig().isShowMenuBar());
+        menuBarEnable.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                parent.showHideMenuBars(menuBarEnable.isSelected());
+                parent.getConfig().setShowMenuBar(menuBarEnable.isSelected());
+            }
+        });
+        CheckBox navigationBarEnable = new CheckBox(" Navigation Bar Enable");
+        navigationBarEnable.setSelected(parent.getConfig().isShowNavigationBar());
+        navigationBarEnable.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                parent.showHideNavigationBars(navigationBarEnable.isSelected());
+                parent.getConfig().setShowNavigationBar(navigationBarEnable.isSelected());
+            }
+        });
+        
 
         GridPane answer = new GridPane();
         answer.setAlignment(Pos.TOP_CENTER);
@@ -324,7 +343,7 @@ public class ConfigFrame {
         answer.setVgap(15);
         answer.setPadding(new Insets(0, 10, 0, 10));
         answer.add(menuBarEnable, 0, 1);
-        answer.add(menuButtonEnable, 0, 2);
+        answer.add(navigationBarEnable, 0, 2);
         GridPane.setHalignment(titleLabel, HPos.CENTER);
         return answer;
     }

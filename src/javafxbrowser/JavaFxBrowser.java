@@ -5,6 +5,8 @@ import java.net.CookieManager;
 import java.net.URL;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -43,6 +45,8 @@ public class JavaFxBrowser extends Application {
 
     private Tab settingTab;
     private final ObservableList<HistoryEntry> webHistory = FXCollections.observableArrayList();
+
+    private final Map<Tab, BrowserFXFrame> browserFrames = new HashMap();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -83,6 +87,7 @@ public class JavaFxBrowser extends Application {
     public void addTab() {
         BrowserFXFrame newFrame = new BrowserFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
+        browserFrames.put(tab, newFrame);
         tab.setText("New Window");
         tab.setContent(newFrame.getRootPane(this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
@@ -91,6 +96,7 @@ public class JavaFxBrowser extends Application {
         tab.setOnSelectionChanged((Event event) -> {
         });
         tab.setOnClosed((Event event) -> {
+            browserFrames.remove(tab);
             if (tabs.getTabs().size() > 2) {
                 tabs.getTabs().stream().forEach((tb) -> {
                     tb.setClosable(true);
@@ -126,6 +132,7 @@ public class JavaFxBrowser extends Application {
     public void addTab(String url) {
         BrowserFXFrame newFrame = new BrowserFXFrame();
         Tab tab = tabs.getTabs().get(tabs.getTabs().size() - 1);
+        browserFrames.put(tab, newFrame);
         tab.setText("New Window");
         tab.setContent(newFrame.getRootPane(this));
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
@@ -134,6 +141,7 @@ public class JavaFxBrowser extends Application {
         tab.setOnSelectionChanged((Event event) -> {
         });
         tab.setOnClosed((Event event) -> {
+            browserFrames.remove(tab);
             if (tabs.getTabs().size() > 2) {
                 tabs.getTabs().stream().forEach((tb) -> {
                     tb.setClosable(true);
@@ -237,6 +245,18 @@ public class JavaFxBrowser extends Application {
 
     public ObservableList<HistoryEntry> getWebHistory() {
         return webHistory;
+    }
+
+    public void showHideMenuBars(boolean show) {
+        browserFrames.values().stream().forEach((frame) -> {
+            frame.hideShowMenuBar(show);
+        });
+    }
+
+    public void showHideNavigationBars(boolean show) {
+        browserFrames.values().stream().forEach((frame) -> {
+            frame.hideShowNavigationBar(show);
+        });
     }
 
     /**

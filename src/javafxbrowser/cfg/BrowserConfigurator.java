@@ -17,6 +17,9 @@ public class BrowserConfigurator {
 
     private boolean openNewTabEmpty = false;
 
+    private boolean showMenuBar = true;
+    private boolean showNavigationBar = true;
+
     public BrowserConfigurator() {
         createSampleSearchEngines();
     }
@@ -67,6 +70,22 @@ public class BrowserConfigurator {
 
     public void setOpenNewTabEmpty(boolean openNewTabEmpty) {
         this.openNewTabEmpty = openNewTabEmpty;
+    }
+
+    public boolean isShowMenuBar() {
+        return showMenuBar;
+    }
+
+    public void setShowMenuBar(boolean showMenuBar) {
+        this.showMenuBar = showMenuBar;
+    }
+
+    public boolean isShowNavigationBar() {
+        return showNavigationBar;
+    }
+
+    public void setShowNavigationBar(boolean showNavigationBar) {
+        this.showNavigationBar = showNavigationBar;
     }
 
 }
