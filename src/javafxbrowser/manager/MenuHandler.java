@@ -1,8 +1,6 @@
 package javafxbrowser.manager;
 
-import com.sun.javaws.ui.SplashScreen;
 import com.sun.webkit.dom.HTMLAnchorElementImpl;
-import com.sun.webkit.dom.HTMLDivElementImpl;
 import com.sun.webkit.dom.HTMLImageElementImpl;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -112,7 +110,7 @@ public class MenuHandler {
         CheckMenuItem viewNavigationOption = new CheckMenuItem("Navigation Bar");
         viewNavigationOption.setSelected(parent.getConfig().isShowNavigationBar());
         viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
-            browser.hideShowNavigationBar(new_val);
+            parent.showHideNavigationBars(new_val);
         });
 
         CheckMenuItem showHistory = new CheckMenuItem("History");
@@ -123,7 +121,6 @@ public class MenuHandler {
             } else {
                 browser.hideHistoryWindw();
             }
-
         }
         );
 
