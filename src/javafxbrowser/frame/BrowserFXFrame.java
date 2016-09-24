@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -22,8 +23,11 @@ import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
@@ -100,7 +104,7 @@ public class BrowserFXFrame {
 
         rootPane = new BorderPane();
         topPanel = new VBox();
-        
+
         if (parent.getConfig().isShowMenuBar()) {
             topPanel.getChildren().add(menuHandler.getMenuBar());
         }
@@ -537,6 +541,17 @@ public class BrowserFXFrame {
             if (navigatorNode != null) {
                 topPanel.getChildren().remove(navigatorNode);
             }
+        }
+        try {
+            topPanel.getChildren().stream().filter((topPanelChildren) -> (topPanelChildren.getId().equalsIgnoreCase("menuBar"))).forEach((Node topPanelChildren) -> {
+                ((MenuBar) topPanelChildren).getMenus().stream().filter((menu) -> (menu.getId().equalsIgnoreCase("menuView"))).forEach((Menu menu) -> {
+                    menu.getItems().stream().filter((item) -> (item instanceof CheckMenuItem && item.getId().equalsIgnoreCase("navigationBarOption"))).forEach((MenuItem item) -> {
+                        ((CheckMenuItem) item).setSelected(show);
+                    });
+                });
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

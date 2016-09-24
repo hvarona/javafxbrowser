@@ -77,6 +77,7 @@ public class MenuHandler {
         Menu menuFile = new Menu("File");
         Menu menuEdit = new Menu("Edit");
         Menu menuView = new Menu("View");
+        menuView.setId("menuView");
         menuBar.getMenus().addAll(menuFile, menuEdit, menuView);
 
         MenuItem newTabOption = new MenuItem("New Tab");
@@ -108,6 +109,7 @@ public class MenuHandler {
         });
 
         CheckMenuItem viewNavigationOption = new CheckMenuItem("Navigation Bar");
+        viewNavigationOption.setId("navigationBarOption");
         viewNavigationOption.setSelected(parent.getConfig().isShowNavigationBar());
         viewNavigationOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
             parent.showHideNavigationBars(new_val);
