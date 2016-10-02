@@ -113,6 +113,7 @@ public class ConfigFrame {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 parent.getConfig().setHomepage(homePage.getText());
+                parent.setConfig();
             }
         }));
 
@@ -124,6 +125,7 @@ public class ConfigFrame {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 parent.getConfig().setDefaultDownloadDirectory(downloadDirectory.getText());
+                parent.setConfig();
             }
         }));
         DirectoryChooser chooser = new DirectoryChooser();
@@ -335,7 +337,6 @@ public class ConfigFrame {
                 parent.getConfig().setShowNavigationBar(navigationBarEnable.isSelected());
             }
         });
-        
 
         GridPane answer = new GridPane();
         answer.setAlignment(Pos.TOP_CENTER);

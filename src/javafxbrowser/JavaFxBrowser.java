@@ -13,6 +13,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
@@ -21,12 +22,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.web.WebHistory;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.frame.BrowserFXFrame;
 import javafxbrowser.frame.ConfigFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
+import javafxbrowser.rpc.InterCommPrx;
+import javafxbrowser.rpc.InterCommPrxHelper;
+import javafxbrowser.rpc.config;
 import javafxbrowser.util.HistoryEntry;
 
 /**
@@ -48,6 +53,9 @@ public class JavaFxBrowser extends Application {
 
     private final Map<Tab, BrowserFXFrame> browserFrames = new HashMap();
 
+    private static InterCommPrx interComm;
+    private static Ice.Communicator ic;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         cacheHandler = new CacheHandler();
@@ -55,6 +63,7 @@ public class JavaFxBrowser extends Application {
         cookieHandler = new CookieHandler();
         CookieManager.setDefault(cookieHandler.getCookieManager());
         defaultConfig = new BrowserConfigurator();
+        this.getConfig();
         tabs.setTabMinHeight(30);
         tabs.setTabMaxWidth(40);
         tabs.setMinHeight(600);
@@ -81,6 +90,20 @@ public class JavaFxBrowser extends Application {
         primaryStage.setTitle("No title bar");
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                if (ic != null) {
+                    // Clean up
+                    //
+                    try {
+                        ic.destroy();
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+                }
+            }
+        });
         addTab();
     }
 
@@ -215,6 +238,10 @@ public class JavaFxBrowser extends Application {
     }
 
     public BrowserConfigurator getConfig() {
+
+        config conf = interComm.getConfig();
+        defaultConfig.setHomepage(conf.homepage);
+        defaultConfig.setHomepage(conf.defaultDownloadDirectory);
         return defaultConfig;
     }
 
@@ -233,12 +260,8 @@ public class JavaFxBrowser extends Application {
             date = format.format(new Date());
         }
         HistoryEntry addEntry = new HistoryEntry(date, "", "", url);
-        entry.titleProperty().addListener(new ChangeListener<String>() {
-
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                addEntry.setTitle(newValue);
-            }
+        entry.titleProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            addEntry.setTitle(newValue);
         });
         webHistory.add(addEntry);
     }
@@ -257,6 +280,10 @@ public class JavaFxBrowser extends Application {
         browserFrames.values().stream().forEach((frame) -> {
             frame.hideShowNavigationBar(show);
         });
+    }
+
+    public void setConfig() {
+        interComm.setConfig(defaultConfig);
     }
 
     /**
@@ -278,6 +305,35 @@ public class JavaFxBrowser extends Application {
          main.loadURL("http://www.google.com/"); //Home Page
          }
          });*/
+        int status = 0;
+        ic = null;
+        try {
+            ic = Ice.Util.initialize(args);
+            Ice.ObjectPrx base = ic.stringToProxy("JavaFxBroswerInterComm:default -p 12234");
+            interComm = InterCommPrxHelper.checkedCast(base);
+            if (interComm == null) {
+                throw new Error("Invalid proxy");
+            }
+
+            interComm.printString("Hello World!");
+        } catch (Ice.LocalException e) {
+            e.printStackTrace();
+            status = 1;
+        } catch (Exception e) {
+            //System.err.println(e.getMessage());
+            status = 1;
+        }
+        /*if (ic != null) {
+            // Clean up
+            //
+            try {
+                ic.destroy();
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+                status = 1;
+            }
+        }*/
+        //System.exit(status);
         launch(args);
     }
 
