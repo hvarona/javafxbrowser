@@ -15,7 +15,7 @@ public class NotImplement extends JApplet {
     public void init() {
         try {
             SwingUtilities.invokeAndWait(() -> {
-                JLabel lbl = new JLabel("Not implementedF");
+                JLabel lbl = new JLabel("Applet are not Implemented Yet");
                 add(lbl);
             });
         } catch (InterruptedException | InvocationTargetException e) {

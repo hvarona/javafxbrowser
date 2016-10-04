@@ -599,7 +599,7 @@ public class BrowserFXFrame {
     public void destroyApplet() {
         Node search = null;
         for (Node node : centerPane.getChildren()) {
-            if (node.getId().equalsIgnoreCase("appletNode")) {
+            if (node.getId() != null && node.getId().equalsIgnoreCase("appletNode")) {
                 search = node;
             }
         }
