@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,7 +30,6 @@ import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
 import javafxbrowser.rpc.InterCommPrx;
 import javafxbrowser.rpc.InterCommPrxHelper;
-import javafxbrowser.rpc.config;
 import javafxbrowser.util.HistoryEntry;
 
 /**
@@ -238,10 +236,7 @@ public class JavaFxBrowser extends Application {
     }
 
     public BrowserConfigurator getConfig() {
-
-        config conf = interComm.getConfig();
-        defaultConfig.setHomepage(conf.homepage);
-        defaultConfig.setHomepage(conf.defaultDownloadDirectory);
+        defaultConfig = interComm.getConfig();
         return defaultConfig;
     }
 
@@ -324,15 +319,15 @@ public class JavaFxBrowser extends Application {
             status = 1;
         }
         /*if (ic != null) {
-            // Clean up
-            //
-            try {
-                ic.destroy();
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-                status = 1;
-            }
-        }*/
+         // Clean up
+         //
+         try {
+         ic.destroy();
+         } catch (Exception e) {
+         System.err.println(e.getMessage());
+         status = 1;
+         }
+         }*/
         //System.exit(status);
         launch(args);
     }

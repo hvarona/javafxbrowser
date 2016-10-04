@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -53,9 +52,7 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.util.Callback;
 import javafxbrowser.JavaFxBrowser;
-import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.listener.WebEngineChangeAction;
 import javafxbrowser.manager.MenuHandler;
 import javafxbrowser.util.DragResizer;
@@ -188,48 +185,30 @@ public class BrowserFXFrame {
         rootPane.setCenter(centerPane);
 
         webView.setContextMenuEnabled(false);
-        webView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        webView.setOnMouseClicked((MouseEvent mouse) -> {
+            if (mouse.getButton() == MouseButton.SECONDARY) {
+                Point2D mousePoint = webView.sceneToLocal(mouse.getSceneX(), mouse.getSceneY());
 
-            @Override
-            public void handle(MouseEvent mouse) {
-                if (mouse.getButton() == MouseButton.SECONDARY) {
-                    Point2D mousePoint = webView.sceneToLocal(mouse.getSceneX(), mouse.getSceneY());
-
-                    JSObject el = (JSObject) engine.executeScript("document.elementFromPoint(" + mousePoint.getX() + "," + mousePoint.getY() + ");");
-                    contextMenu = menuHandler.getContextMenu(el);
-                    contextMenu.show(webView, mouse.getScreenX(), mouse.getScreenY());
-                } else if (contextMenu != null) {
-                    contextMenu.hide();
-                }
+                JSObject el = (JSObject) engine.executeScript("document.elementFromPoint(" + mousePoint.getX() + "," + mousePoint.getY() + ");");
+                contextMenu = menuHandler.getContextMenu(el);
+                contextMenu.show(webView, mouse.getScreenX(), mouse.getScreenY());
+            } else if (contextMenu != null) {
+                contextMenu.hide();
             }
         });
 
-        webView.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
-            @Override
-            public void handle(ContextMenuEvent event) {
-                System.out.println("contextMenu Event");
-
-            }
+        webView.setOnContextMenuRequested((ContextMenuEvent event) -> {
+            System.out.println("contextMenu Event");
         });
 
-        engine.setCreatePopupHandler(new Callback<PopupFeatures, WebEngine>() {
-            @Override
-            public WebEngine call(PopupFeatures param) {
-                // Open Link in new Window option
-                return null;
-            }
-        });
+        engine.setCreatePopupHandler((PopupFeatures param) -> null // Open Link in new Window option
+        );
 
-        engine.getHistory().getEntries().addListener(new ListChangeListener<WebHistory.Entry>() {
-
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends WebHistory.Entry> c) {
-                if (c.next()) {
-                    for (WebHistory.Entry entry : c.getAddedSubList()) {
-                        parent.addHisotryEntry(entry);
-                    }
-                }
-
+        engine.getHistory().getEntries().addListener((ListChangeListener.Change<? extends WebHistory.Entry> c) -> {
+            if (c.next()) {
+                c.getAddedSubList().stream().forEach((entry) -> {
+                    parent.addHisotryEntry(entry);
+                });
             }
         });
 
@@ -609,6 +588,11 @@ public class BrowserFXFrame {
 
     public JavaFxBrowser getParent() {
         return parent;
+    }
+
+    public void loadApplet() {
+        Node node = (new LoadAppletFrame()).getNode();
+        centerPane.getChildren().add(node);
     }
 
 }

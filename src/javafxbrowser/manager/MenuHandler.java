@@ -96,6 +96,12 @@ public class MenuHandler {
         printOption.setOnAction((ActionEvent evt) -> {
             browser.printPage();
         });
+        
+        MenuItem loadAppletOption = new MenuItem("Load Applet");
+        menuFile.getItems().add(loadAppletOption);
+        loadAppletOption.setOnAction((ActionEvent evt) -> {
+            browser.loadApplet();
+        });
 
         MenuItem closeOption = new MenuItem("Exit");
         menuFile.getItems().add(closeOption);

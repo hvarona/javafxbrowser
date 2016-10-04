@@ -1,10 +1,12 @@
 package javafxbrowser.cfg;
 
+import java.io.Serializable;
+
 /**
  *
  * @author henry
  */
-public class SearchEngine {
+public class SearchEngine implements Serializable{
 
     private String name;
     private String url;

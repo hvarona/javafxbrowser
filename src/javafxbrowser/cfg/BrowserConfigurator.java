@@ -2,13 +2,12 @@ package javafxbrowser.cfg;
 
 import java.util.ArrayList;
 import java.util.List;
-import javafxbrowser.rpc.config;
 
 /**
  *
  * @author henry
  */
-public class BrowserConfigurator extends config implements java.io.Serializable{
+public class BrowserConfigurator implements java.io.Serializable {
 
     private String homepage = "http://www.google.com/";
     private String defaultDownloadDirectory = System.getProperty("user.home");

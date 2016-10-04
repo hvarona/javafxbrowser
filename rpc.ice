@@ -1,18 +1,17 @@
 // Printer.ice
 module javafxbrowser{
 module rpc{
-	class config{
-		string homepage;
-		string defaultDownloadDirectory;
-	};
+	["java:serializable:javafxbrowser.cfg.BrowserConfigurator"]
+	sequence<byte> ConfigObj;
+	
     interface InterComm {
         //
         // A client can invoke this operation on a server.
         // In this example we print the string s
         //
         void printString(string s);
-		config getConfig();
-		void setConfig(config conf);
+		ConfigObj getConfig();
+		void setConfig(ConfigObj conf);
     };
 	};
 };
