@@ -96,12 +96,19 @@ public class MenuHandler {
         printOption.setOnAction((ActionEvent evt) -> {
             browser.printPage();
         });
-        
-        MenuItem loadAppletOption = new MenuItem("Load Applet");
+
+        CheckMenuItem loadAppletOption = new CheckMenuItem("Load Applet");
         menuFile.getItems().add(loadAppletOption);
-        loadAppletOption.setOnAction((ActionEvent evt) -> {
-            browser.loadApplet();
+        loadAppletOption.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
+            if (new_val) {
+                browser.loadApplet();
+            } else {
+                browser.destroyApplet();
+            }
         });
+        /*loadAppletOption.setOnAction((ActionEvent evt) -> {
+         browser.loadApplet();
+         });*/
 
         MenuItem closeOption = new MenuItem("Exit");
         menuFile.getItems().add(closeOption);

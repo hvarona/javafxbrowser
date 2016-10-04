@@ -592,7 +592,20 @@ public class BrowserFXFrame {
 
     public void loadApplet() {
         Node node = (new LoadAppletFrame()).getNode();
+        node.setId("appletNode");
         centerPane.getChildren().add(node);
+    }
+
+    public void destroyApplet() {
+        Node search = null;
+        for (Node node : centerPane.getChildren()) {
+            if (node.getId().equalsIgnoreCase("appletNode")) {
+                search = node;
+            }
+        }
+        if (search != null) {
+            centerPane.getChildren().remove(search);
+        }
     }
 
 }
