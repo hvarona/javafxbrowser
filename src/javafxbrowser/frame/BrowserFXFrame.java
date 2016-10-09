@@ -10,9 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -55,6 +57,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafxbrowser.JavaFxBrowser;
 import javafxbrowser.listener.WebEngineChangeAction;
 import javafxbrowser.manager.MenuHandler;
+import javafxbrowser.manager.TagHandler;
 import javafxbrowser.util.DragResizer;
 import netscape.javascript.JSObject;
 import org.w3c.dom.Document;
@@ -590,22 +593,16 @@ public class BrowserFXFrame {
         return parent;
     }
 
-    public void loadApplet() {
-        Node node = (new LoadAppletFrame()).getNode();
-        node.setId("appletNode");
-        centerPane.getChildren().add(node);
+    public URL getCurrentURL() throws MalformedURLException {
+        return new URL(currentURL);
     }
 
-    public void destroyApplet() {
-        Node search = null;
-        for (Node node : centerPane.getChildren()) {
-            if (node.getId() != null && node.getId().equalsIgnoreCase("appletNode")) {
-                search = node;
+    public void addTagHandler(TagHandler handler) {
+        engine.getLoadWorker().stateProperty().addListener((ObservableValue<? extends Worker.State> observable, Worker.State oldValue, Worker.State newValue) -> {
+            if (newValue == Worker.State.SUCCEEDED) {
+                handler.OnSuccess();
             }
-        }
-        if (search != null) {
-            centerPane.getChildren().remove(search);
-        }
+        });
     }
 
 }

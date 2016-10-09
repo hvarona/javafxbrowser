@@ -13,5 +13,8 @@ module rpc{
 		ConfigObj getConfig();
 		void setConfig(ConfigObj conf);
     };
+	interface ClientWP{
+		void updateConfig(ConfigObj conf);
+	};
 	};
 };

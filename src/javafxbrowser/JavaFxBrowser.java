@@ -26,8 +26,10 @@ import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.frame.BrowserFXFrame;
 import javafxbrowser.frame.ConfigFrame;
 import javafxbrowser.listener.BasicWebEngineChangeAction;
+import javafxbrowser.manager.AppletHandler;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
+import javafxbrowser.manager.TagHandler;
 import javafxbrowser.rpc.InterCommPrx;
 import javafxbrowser.rpc.InterCommPrxHelper;
 import javafxbrowser.util.HistoryEntry;
@@ -60,7 +62,7 @@ public class JavaFxBrowser extends Application {
         URL.setURLStreamHandlerFactory(cacheHandler);
         cookieHandler = new CookieHandler();
         CookieManager.setDefault(cookieHandler.getCookieManager());
-        defaultConfig = new BrowserConfigurator();
+        //defaultConfig = new BrowserConfigurator();
         this.getConfig();
         tabs.setTabMinHeight(30);
         tabs.setTabMaxWidth(40);
@@ -88,17 +90,14 @@ public class JavaFxBrowser extends Application {
         primaryStage.setTitle("No title bar");
         primaryStage.setScene(scene);
         primaryStage.show();
-        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                if (ic != null) {
-                    // Clean up
-                    //
-                    try {
-                        ic.destroy();
-                    } catch (Exception e) {
-                        System.err.println(e.getMessage());
-                    }
+        primaryStage.setOnCloseRequest((WindowEvent event) -> {
+            if (ic != null) {
+                // Clean up
+                //
+                try {
+                    ic.destroy();
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
                 }
             }
         });
@@ -114,6 +113,10 @@ public class JavaFxBrowser extends Application {
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));
+
+        //enable applet
+        newFrame.addTagHandler(new TagHandler("applet", newFrame, new AppletHandler()));
+
         tab.setOnSelectionChanged((Event event) -> {
         });
         tab.setOnClosed((Event event) -> {
@@ -159,6 +162,9 @@ public class JavaFxBrowser extends Application {
         newFrame.addChangeAction(new BasicWebEngineChangeAction((String newValue) -> {
             tab.setText(newValue);
         }));
+        //enable applet
+        newFrame.addTagHandler(new TagHandler("applet", newFrame, new AppletHandler()));
+
         tab.setOnSelectionChanged((Event event) -> {
         });
         tab.setOnClosed((Event event) -> {

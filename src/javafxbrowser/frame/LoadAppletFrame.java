@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.embed.swing.SwingNode;
 import javafx.scene.Node;
-import javafxbrowser.applet.NotImplement;
 import javax.swing.JApplet;
 import javax.swing.SwingUtilities;
 
@@ -17,11 +16,11 @@ import javax.swing.SwingUtilities;
  */
 public class LoadAppletFrame {
 
-    private JApplet applet = new NotImplement();
     private Dimension appletSize;
 
-    public Node getNode() {
+    public Node getNode(JApplet applet) {
         applet.init();
+        applet.start();
         FutureTask<Dimension> sizingTask = new FutureTask<>(()
                 -> applet.getRootPane().getPreferredSize()
         );
@@ -35,6 +34,7 @@ public class LoadAppletFrame {
         SwingUtilities.invokeLater(()
                 -> swingNode.setContent(applet.getRootPane())
         );
+
         return swingNode;
     }
 }

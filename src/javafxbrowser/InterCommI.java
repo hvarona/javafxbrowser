@@ -23,6 +23,11 @@ public class InterCommI extends _InterCommDisp {
         this.adapter = adapter;
     }
 
+    /**
+     * Example only for test
+     * @param s
+     * @param __current 
+     */
     @Override
     public void printString(String s, Current __current) {
         System.out.println(s);
@@ -30,14 +35,11 @@ public class InterCommI extends _InterCommDisp {
 
     @Override
     public BrowserConfigurator getConfig(Current __current) {
-        System.out.println("Se pidio la configuracion con homepage " + configurator.getHomepage());
         return configurator;
     }
 
     @Override
     public void setConfig(BrowserConfigurator conf, Current __current) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        System.out.println("Se setea una configuracion");
         this.configurator = conf;
     }
 
