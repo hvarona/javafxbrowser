@@ -2,6 +2,7 @@ package javafxbrowser.cfg;
 
 import java.util.ArrayList;
 import java.util.List;
+import javafxbrowser.rpc.Config;
 
 /**
  *
@@ -86,6 +87,11 @@ public class BrowserConfigurator implements java.io.Serializable {
 
     public void setShowNavigationBar(boolean showNavigationBar) {
         this.showNavigationBar = showNavigationBar;
+    }
+
+    public Config getConfig() {
+        return Config.newBuilder().setDefaultDownloadDirectory(defaultDownloadDirectory)
+                .setHomepage(homepage).build();
     }
 
 }

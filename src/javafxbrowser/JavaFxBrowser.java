@@ -12,7 +12,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
@@ -30,8 +29,6 @@ import javafxbrowser.manager.AppletHandler;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
 import javafxbrowser.manager.TagHandler;
-import javafxbrowser.rpc.InterCommPrx;
-import javafxbrowser.rpc.InterCommPrxHelper;
 import javafxbrowser.util.HistoryEntry;
 
 /**
@@ -52,9 +49,6 @@ public class JavaFxBrowser extends Application {
     private final ObservableList<HistoryEntry> webHistory = FXCollections.observableArrayList();
 
     private final Map<Tab, BrowserFXFrame> browserFrames = new HashMap();
-
-    private static InterCommPrx interComm;
-    private static Ice.Communicator ic;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -91,7 +85,7 @@ public class JavaFxBrowser extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         primaryStage.setOnCloseRequest((WindowEvent event) -> {
-            if (ic != null) {
+            /*if (ic != null) {
                 // Clean up
                 //
                 try {
@@ -99,7 +93,7 @@ public class JavaFxBrowser extends Application {
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                 }
-            }
+            }*/
         });
         addTab();
     }
@@ -242,7 +236,7 @@ public class JavaFxBrowser extends Application {
     }
 
     public BrowserConfigurator getConfig() {
-        defaultConfig = interComm.getConfig();
+        //defaultConfig = interComm.getConfig();
         return defaultConfig;
     }
 
@@ -284,7 +278,7 @@ public class JavaFxBrowser extends Application {
     }
 
     public void setConfig() {
-        interComm.setConfig(defaultConfig);
+        //interComm.setConfig(defaultConfig);
     }
 
     /**
@@ -307,8 +301,8 @@ public class JavaFxBrowser extends Application {
          }
          });*/
         int status = 0;
-        ic = null;
-        try {
+        //ic = null;
+        /*try {
             ic = Ice.Util.initialize(args);
             Ice.ObjectPrx base = ic.stringToProxy("JavaFxBroswerInterComm:default -p 12234");
             interComm = InterCommPrxHelper.checkedCast(base);

@@ -18,6 +18,7 @@ import javafxbrowser.frame.LoadAppletFrame;
 import javax.swing.JApplet;
 import netscape.javascript.JSObject;
 import org.w3c.dom.Node;
+import sun.applet.AppletViewer;
 
 /**
  *
@@ -36,7 +37,6 @@ public class AppletHandler implements TagHandlerFactory {
             try {
                 name = nodeTag.getAttributes().getNamedItem("name").getNodeValue();
             } catch (Exception e) {
-                nodeTag.getAttributes().getNamedItem("name").setNodeValue(name);
             }
             URL currentURL = frame.getCurrentURL();
             String codeBase = currentURL.getPath();
@@ -74,13 +74,14 @@ public class AppletHandler implements TagHandlerFactory {
                 code = code.substring(0, code.length() - 6);
             }
             Class appletClazz = ucl.loadClass(code);
+            AppletViewer viewer = new AppletViewer(width, height, currentURL, null, null, null);
 
             Applet appletObject = (Applet) appletClazz.newInstance();
+            appletObject.init();
+            appletObject.start();
 
             JSObject doc = (JSObject) frame.getEngine().executeScript("window");
             doc.setMember(name, appletObject);
-            appletObject.init();
-            appletObject.start();
 
             return true;
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | MalformedURLException ex) {
