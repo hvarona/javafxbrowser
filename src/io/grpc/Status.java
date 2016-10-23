@@ -31,15 +31,16 @@
 
 package io.grpc;
 
+import static com.google.common.base.Charsets.US_ASCII;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-import io.grpc.Metadata.AsciiMarshaller;
+import io.grpc.InternalMetadata.TrustedAsciiMarshaller;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -215,11 +216,11 @@ public final class Status {
     UNAUTHENTICATED(16);
 
     private final int value;
-    private final String valueAscii;
+    private final byte[] valueAscii;
 
     private Code(int value) {
       this.value = value;
-      this.valueAscii = Integer.toString(value);
+      this.valueAscii = Integer.toString(value).getBytes(US_ASCII);
     }
 
     /**
@@ -233,7 +234,7 @@ public final class Status {
       return STATUS_LIST.get(value);
     }
 
-    private String valueAscii() {
+    private byte[] valueAscii() {
       return valueAscii;
     }
   }
@@ -314,6 +315,39 @@ public final class Status {
     }
   }
 
+  private static Status fromCodeValue(byte[] asciiCodeValue) {
+    if (asciiCodeValue.length == 1 && asciiCodeValue[0] == '0') {
+      return Status.OK;
+    }
+    return fromCodeValueSlow(asciiCodeValue);
+  }
+
+  @SuppressWarnings("fallthrough")
+  private static Status fromCodeValueSlow(byte[] asciiCodeValue) {
+    int index = 0;
+    int codeValue = 0;
+    switch (asciiCodeValue.length) {
+      case 2:
+        if (asciiCodeValue[index] < '0' || asciiCodeValue[index] > '9') {
+          break;
+        }
+        codeValue += (asciiCodeValue[index++] - '0') * 10;
+        // fall through
+      case 1:
+        if (asciiCodeValue[index] < '0' || asciiCodeValue[index] > '9') {
+          break;
+        }
+        codeValue += asciiCodeValue[index] - '0';
+        if (codeValue < STATUS_LIST.size()) {
+          return STATUS_LIST.get(codeValue);
+        }
+        break;
+      default:
+        break;
+    }
+    return UNKNOWN.withDescription("Unknown code " + new String(asciiCodeValue, US_ASCII));
+  }
+
   /**
    * Return a {@link Status} given a canonical error {@link Code} object.
    */
@@ -350,53 +384,15 @@ public final class Status {
    * sequence.  After the input header bytes are converted into UTF-8 bytes, the new byte array is
    * reinterpretted back as a string.
    */
-  private static final AsciiMarshaller<String> STATUS_MESSAGE_MARSHALLER =
-      new AsciiMarshaller<String>() {
-
-    @Override
-    public String toAsciiString(String value) {
-      // This can be made faster if necessary.
-      StringBuilder sb = new StringBuilder(value.length());
-      for (byte b : value.getBytes(Charset.forName("UTF-8"))) {
-        if (b >= ' ' && b < '%' || b > '%' && b < '~') {
-          // fast path, if it's plain ascii and not a percent, pass it through.
-          sb.append((char) b);
-        } else {
-          sb.append(String.format("%%%02X", b));
-        }
-      }
-      return sb.toString();
-    }
-
-    @Override
-    public String parseAsciiString(String value) {
-      Charset transerEncoding = Charset.forName("US-ASCII");
-      // This can be made faster if necessary.
-      byte[] source = value.getBytes(transerEncoding);
-      ByteBuffer buf = ByteBuffer.allocate(source.length);
-      for (int i = 0; i < source.length; ) {
-        if (source[i] == '%' && i + 2 < source.length) {
-          try {
-            buf.put((byte)Integer.parseInt(new String(source, i + 1, 2, transerEncoding), 16));
-            i += 3;
-            continue;
-          } catch (NumberFormatException e) {
-            // ignore, fall through, just push the bytes.
-          }
-        }
-        buf.put(source[i]);
-        i += 1;
-      }
-      return new String(buf.array(), 0, buf.position(), Charset.forName("UTF-8"));
-    }
-  };
+  private static final InternalMetadata.TrustedAsciiMarshaller<String> STATUS_MESSAGE_MARSHALLER =
+      new StatusMessageMarshaller();
 
   /**
    * Key to bind status message to trailing metadata.
    */
   @Internal
-  public static final Metadata.Key<String> MESSAGE_KEY
-      = Metadata.Key.of("grpc-message", STATUS_MESSAGE_MARSHALLER);
+  public static final Metadata.Key<String> MESSAGE_KEY =
+      Metadata.Key.of("grpc-message", STATUS_MESSAGE_MARSHALLER);
 
   /**
    * Extract an error {@link Status} from the causal chain of a {@link Throwable}.
@@ -406,7 +402,7 @@ public final class Status {
    * @return non-{@code null} status
    */
   public static Status fromThrowable(Throwable t) {
-    Throwable cause = checkNotNull(t);
+    Throwable cause = checkNotNull(t, "t");
     while (cause != null) {
       if (cause instanceof StatusException) {
         return ((StatusException) cause).getStatus();
@@ -426,7 +422,7 @@ public final class Status {
    */
   @ExperimentalApi
   public static Metadata trailersFromThrowable(Throwable t) {
-    Throwable cause = checkNotNull(t);
+    Throwable cause = checkNotNull(t, "t");
     while (cause != null) {
       if (cause instanceof StatusException) {
         return ((StatusException) cause).getTrailers();
@@ -455,7 +451,7 @@ public final class Status {
   }
 
   private Status(Code code, @Nullable String description, @Nullable Throwable cause) {
-    this.code = checkNotNull(code);
+    this.code = checkNotNull(code, "code");
     this.description = description;
     this.cause = cause;
   }
@@ -571,15 +567,97 @@ public final class Status {
         .toString();
   }
 
-  private static class StatusCodeMarshaller implements Metadata.AsciiMarshaller<Status> {
+  private static final class StatusCodeMarshaller implements TrustedAsciiMarshaller<Status> {
     @Override
-    public String toAsciiString(Status status) {
+    public byte[] toAsciiString(Status status) {
       return status.getCode().valueAscii();
     }
 
     @Override
-    public Status parseAsciiString(String serialized) {
-      return fromCodeValue(Integer.valueOf(serialized));
+    public Status parseAsciiString(byte[] serialized) {
+      return fromCodeValue(serialized);
+    }
+  }
+
+  private static final class StatusMessageMarshaller implements TrustedAsciiMarshaller<String> {
+
+    private static final byte[] HEX =
+        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    @Override
+    public byte[] toAsciiString(String value) {
+      byte[] valueBytes = value.getBytes(UTF_8);
+      for (int i = 0; i < valueBytes.length; i++) {
+        byte b = valueBytes[i];
+        // If there are only non escaping characters, skip the slow path.
+        if (isEscapingChar(b)) {
+          return toAsciiStringSlow(valueBytes, i);
+        }
+      }
+      return valueBytes;
+    }
+
+    private static boolean isEscapingChar(byte b) {
+      return b < ' ' || b >= '~' || b == '%';
+    }
+
+    /**
+     * @param valueBytes the UTF-8 bytes
+     * @param ri The reader index, pointed at the first byte that needs escaping.
+     */
+    private static byte[] toAsciiStringSlow(byte[] valueBytes, int ri) {
+      byte[] escapedBytes = new byte[ri + (valueBytes.length - ri) * 3];
+      // copy over the good bytes
+      if (ri != 0) {
+        System.arraycopy(valueBytes, 0, escapedBytes, 0, ri);
+      }
+      int wi = ri;
+      for (; ri < valueBytes.length; ri++) {
+        byte b = valueBytes[ri];
+        // Manually implement URL encoding, per the gRPC spec.
+        if (isEscapingChar(b)) {
+          escapedBytes[wi] = '%';
+          escapedBytes[wi + 1] = HEX[(b >> 4) & 0xF];
+          escapedBytes[wi + 2] = HEX[b & 0xF];
+          wi += 3;
+          continue;
+        }
+        escapedBytes[wi++] = b;
+      }
+      byte[] dest = new byte[wi];
+      System.arraycopy(escapedBytes, 0, dest, 0, wi);
+
+      return dest;
+    }
+
+    @SuppressWarnings("deprecation") // Use fast but deprecated String ctor
+    @Override
+    public String parseAsciiString(byte[] value) {
+      for (int i = 0; i < value.length; i++) {
+        byte b = value[i];
+        if (b < ' ' || b >= '~' || b == '%' && i + 2 < value.length) {
+          return parseAsciiStringSlow(value);
+        }
+      }
+      return new String(value, 0);
+    }
+
+    private static String parseAsciiStringSlow(byte[] value) {
+      ByteBuffer buf = ByteBuffer.allocate(value.length);
+      for (int i = 0; i < value.length;) {
+        if (value[i] == '%' && i + 2 < value.length) {
+          try {
+            buf.put((byte)Integer.parseInt(new String(value, i + 1, 2, US_ASCII), 16));
+            i += 3;
+            continue;
+          } catch (NumberFormatException e) {
+            // ignore, fall through, just push the bytes.
+          }
+        }
+        buf.put(value[i]);
+        i += 1;
+      }
+      return new String(buf.array(), 0, buf.position(), UTF_8);
     }
   }
 

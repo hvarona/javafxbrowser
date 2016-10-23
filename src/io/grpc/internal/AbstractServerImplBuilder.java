@@ -32,7 +32,11 @@
 package io.grpc.internal;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.census.Census;
+import com.google.census.CensusContextFactory;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import io.grpc.BindableService;
@@ -44,7 +48,9 @@ import io.grpc.Internal;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
+import io.grpc.ServerTransportFilter;
 
+import java.util.ArrayList;
 import java.util.concurrent.Executor;
 
 import javax.annotation.Nullable;
@@ -69,6 +75,9 @@ public abstract class AbstractServerImplBuilder<T extends AbstractServerImplBuil
   private final InternalHandlerRegistry.Builder registryBuilder =
       new InternalHandlerRegistry.Builder();
 
+  private final ArrayList<ServerTransportFilter> transportFilters =
+      new ArrayList<ServerTransportFilter>();
+
   @Nullable
   private HandlerRegistry fallbackRegistry;
 
@@ -80,6 +89,9 @@ public abstract class AbstractServerImplBuilder<T extends AbstractServerImplBuil
 
   @Nullable
   private CompressorRegistry compressorRegistry;
+
+  @Nullable
+  private CensusContextFactory censusFactory;
 
   @Override
   public final T directExecutor() {
@@ -104,6 +116,12 @@ public abstract class AbstractServerImplBuilder<T extends AbstractServerImplBuil
   }
 
   @Override
+  public final T addTransportFilter(ServerTransportFilter filter) {
+    transportFilters.add(checkNotNull(filter, "filter"));
+    return thisT();
+  }
+
+  @Override
   public final T fallbackHandlerRegistry(HandlerRegistry registry) {
     this.fallbackRegistry = registry;
     return thisT();
@@ -121,13 +139,27 @@ public abstract class AbstractServerImplBuilder<T extends AbstractServerImplBuil
     return thisT();
   }
 
+  /**
+   * Override the default Census implementation.  This is meant to be used in tests.
+   */
+  @VisibleForTesting
+  @Internal
+  public T censusContextFactory(CensusContextFactory censusFactory) {
+    this.censusFactory = censusFactory;
+    return thisT();
+  }
+
   @Override
   public ServerImpl build() {
     io.grpc.internal.InternalServer transportServer = buildTransportServer();
     return new ServerImpl(executor, registryBuilder.build(),
         firstNonNull(fallbackRegistry, EMPTY_FALLBACK_REGISTRY), transportServer,
         Context.ROOT, firstNonNull(decompressorRegistry, DecompressorRegistry.getDefaultInstance()),
-        firstNonNull(compressorRegistry, CompressorRegistry.getDefaultInstance()));
+        firstNonNull(compressorRegistry, CompressorRegistry.getDefaultInstance()),
+        transportFilters,
+        firstNonNull(censusFactory,
+            firstNonNull(Census.getCensusContextFactory(), NoopCensusContextFactory.INSTANCE)),
+        GrpcUtil.STOPWATCH_SUPPLIER);
   }
 
   /**

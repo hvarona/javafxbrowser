@@ -34,6 +34,8 @@ package io.grpc.internal;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.census.Census;
+import com.google.census.CensusContextFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -42,12 +44,14 @@ import io.grpc.Attributes;
 import io.grpc.ClientInterceptor;
 import io.grpc.CompressorRegistry;
 import io.grpc.DecompressorRegistry;
-import io.grpc.DummyLoadBalancerFactory;
+import io.grpc.Internal;
 import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.NameResolver;
 import io.grpc.NameResolverProvider;
+import io.grpc.PickFirstBalancerFactory;
 import io.grpc.ResolvedServerInfo;
+import io.grpc.ResolvedServerInfoGroup;
 
 import java.net.SocketAddress;
 import java.net.URI;
@@ -75,6 +79,12 @@ public abstract class AbstractManagedChannelImplBuilder
    */
   @VisibleForTesting
   static final long IDLE_MODE_MAX_TIMEOUT_DAYS = 30;
+
+  /**
+   * The default idle timeout.
+   */
+  @VisibleForTesting
+  static final long IDLE_MODE_DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(30);
 
   /**
    * An idle timeout smaller than this would be capped to it.
@@ -109,10 +119,13 @@ public abstract class AbstractManagedChannelImplBuilder
   @Nullable
   private CompressorRegistry compressorRegistry;
 
-  private long idleTimeoutMillis = ManagedChannelImpl.IDLE_TIMEOUT_MILLIS_DISABLE;
+  private long idleTimeoutMillis = IDLE_MODE_DEFAULT_TIMEOUT_MILLIS;
+
+  @Nullable
+  private CensusContextFactory censusFactory;
 
   protected AbstractManagedChannelImplBuilder(String target) {
-    this.target = Preconditions.checkNotNull(target);
+    this.target = Preconditions.checkNotNull(target, "target");
     this.directServerAddress = null;
   }
 
@@ -220,6 +233,16 @@ public abstract class AbstractManagedChannelImplBuilder
     return thisT();
   }
 
+  /**
+   * Override the default Census implementation.  This is meant to be used in tests.
+   */
+  @VisibleForTesting
+  @Internal
+  public T censusContextFactory(CensusContextFactory censusFactory) {
+    this.censusFactory = censusFactory;
+    return thisT();
+  }
+
   @VisibleForTesting
   final long getIdleTimeoutMillis() {
     return idleTimeoutMillis;
@@ -254,12 +277,14 @@ public abstract class AbstractManagedChannelImplBuilder
         new ExponentialBackoffPolicy.Provider(),
         nameResolverFactory,
         getNameResolverParams(),
-        firstNonNull(loadBalancerFactory, DummyLoadBalancerFactory.getInstance()),
+        firstNonNull(loadBalancerFactory, PickFirstBalancerFactory.getInstance()),
         transportFactory,
         firstNonNull(decompressorRegistry, DecompressorRegistry.getDefaultInstance()),
         firstNonNull(compressorRegistry, CompressorRegistry.getDefaultInstance()),
         GrpcUtil.TIMER_SERVICE, GrpcUtil.STOPWATCH_SUPPLIER, idleTimeoutMillis,
-        executor, userAgent, interceptors);
+        executor, userAgent, interceptors,
+        firstNonNull(censusFactory,
+            firstNonNull(Census.getCensusContextFactory(), NoopCensusContextFactory.INSTANCE)));
   }
 
   /**
@@ -320,9 +345,8 @@ public abstract class AbstractManagedChannelImplBuilder
 
         @Override
         public void start(final Listener listener) {
-          listener.onUpdate(
-              Collections.singletonList(
-                  Collections.singletonList(new ResolvedServerInfo(address, Attributes.EMPTY))),
+          listener.onUpdate(Collections.singletonList(
+              ResolvedServerInfoGroup.builder().add(new ResolvedServerInfo(address)).build()),
               Attributes.EMPTY);
         }
 

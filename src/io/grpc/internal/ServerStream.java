@@ -69,9 +69,15 @@ public interface ServerStream extends Stream {
   void cancel(Status status);
 
   /**
-   * Attributes describing stream.
+   * Attributes describing stream.  This is inherited from the transport attributes, and used
+   * as the basis of {@link io.grpc.ServerCall#attributes}.
    *
    * @return Attributes container
    */
   Attributes attributes();
+
+  /**
+   * The context for recording stats and traces for this stream.
+   */
+  StatsTraceContext statsTraceContext();
 }

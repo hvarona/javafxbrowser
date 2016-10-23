@@ -2,6 +2,7 @@ package javafxbrowser;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import javafxbrowser.cfg.BrowserConfigurator;
@@ -14,18 +15,24 @@ import javafxbrowser.rpc.ServerPetitionGrpc;
  */
 public class JavaFxBrowserBase extends ServerPetitionGrpc.ServerPetitionImplBase {
 
-    private BrowserConfigurator config = new BrowserConfigurator();
+    private BrowserConfigurator config;
     private static Server server;
-    private final static int port = 10000;
+    private final static int port = 12000;
 
     public JavaFxBrowserBase() {
+        config = new BrowserConfigurator();
     }
 
     @Override
     public void getConfig(Config request, StreamObserver<Config> responseObserver) {
         responseObserver.onNext(config.getConfig());
         responseObserver.onCompleted();
-        //super.getConfig(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setConfig(Config request, StreamObserver<Config> responseObserver) {
+        config.SetConfig(request);
+        responseObserver.onCompleted();
     }
 
     /**
@@ -33,7 +40,7 @@ public class JavaFxBrowserBase extends ServerPetitionGrpc.ServerPetitionImplBase
      * @param args
      */
     public static void main(String[] args) throws IOException {
-        server = ServerBuilder.forPort(port).addService(new JavaFxBrowserBase()).build();
+        server = NettyServerBuilder.forPort(port).addService(new JavaFxBrowserBase()).build();
         server.start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -44,34 +51,5 @@ public class JavaFxBrowserBase extends ServerPetitionGrpc.ServerPetitionImplBase
                 System.err.println("*** server shut down");
             }
         });
-        /*int status = 0;
-         Ice.Communicator ic = null;
-         try {
-         System.out.println("Running the server");
-         ic = Ice.Util.initialize(args);
-         Ice.ObjectAdapter adapter
-         = ic.createObjectAdapterWithEndpoints("JavaFxBroswerInterCommAdapter", "default -p 12234");
-         Ice.Object object = new InterCommI(adapter);
-         adapter.add(object, ic.stringToIdentity("JavaFxBroswerInterComm"));
-         adapter.activate();
-         ic.waitForShutdown();
-         } catch (Ice.LocalException e) {
-         e.printStackTrace();
-         status = 1;
-         } catch (Exception e) {
-         System.err.println(e.getMessage());
-         status = 1;
-         }
-         if (ic != null) {
-         // Clean up
-         //
-         try {
-         ic.destroy();
-         } catch (Exception e) {
-         System.err.println(e.getMessage());
-         status = 1;
-         }
-         }
-         System.exit(status);*/
     }
 }

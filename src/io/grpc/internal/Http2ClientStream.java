@@ -34,6 +34,7 @@ package io.grpc.internal;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 
+import io.grpc.InternalMetadata;
 import io.grpc.Metadata;
 import io.grpc.Status;
 
@@ -44,26 +45,35 @@ import javax.annotation.Nullable;
 /**
  * Base implementation for client streams using HTTP2 as the transport.
  */
-public abstract class Http2ClientStream extends AbstractClientStream<Integer> {
+public abstract class Http2ClientStream extends AbstractClientStream {
 
   /**
    * Metadata marshaller for HTTP status lines.
    */
-  private static final Metadata.AsciiMarshaller<Integer> HTTP_STATUS_LINE_MARSHALLER =
-      new Metadata.AsciiMarshaller<Integer>() {
+  private static final InternalMetadata.TrustedAsciiMarshaller<Integer> HTTP_STATUS_MARSHALLER =
+      new InternalMetadata.TrustedAsciiMarshaller<Integer>() {
         @Override
-        public String toAsciiString(Integer value) {
-          return value.toString();
+        public byte[] toAsciiString(Integer value) {
+          throw new UnsupportedOperationException();
         }
 
+        /**
+         * RFC 7231 says status codes are 3 digits long.
+         *
+         * @see: <a href="https://tools.ietf.org/html/rfc7231#section-6">RFC 7231</a>
+         */
         @Override
-        public Integer parseAsciiString(String serialized) {
-          return Integer.parseInt(serialized.split(" ", 2)[0]);
+        public Integer parseAsciiString(byte[] serialized) {
+          if (serialized.length >= 3) {
+            return (serialized[0] - '0') * 100 + (serialized[1] - '0') * 10 + (serialized[2] - '0');
+          }
+          throw new NumberFormatException(
+              "Malformed status code " + new String(serialized, InternalMetadata.US_ASCII));
         }
       };
 
-  private static final Metadata.Key<Integer> HTTP2_STATUS = Metadata.Key.of(":status",
-      HTTP_STATUS_LINE_MARSHALLER);
+  private static final Metadata.Key<Integer> HTTP2_STATUS = InternalMetadata.keyOf(":status",
+      HTTP_STATUS_MARSHALLER);
 
   /** When non-{@code null}, {@link #transportErrorMetadata} must also be non-{@code null}. */
   private Status transportError;
@@ -71,9 +81,9 @@ public abstract class Http2ClientStream extends AbstractClientStream<Integer> {
   private Charset errorCharset = Charsets.UTF_8;
   private boolean contentTypeChecked;
 
-  protected Http2ClientStream(WritableBufferAllocator bufferAllocator,
-                              int maxMessageSize) {
-    super(bufferAllocator, maxMessageSize);
+  protected Http2ClientStream(WritableBufferAllocator bufferAllocator, int maxMessageSize,
+      StatsTraceContext statsTraceCtx) {
+    super(bufferAllocator, maxMessageSize, statsTraceCtx);
   }
 
   /**
@@ -82,7 +92,7 @@ public abstract class Http2ClientStream extends AbstractClientStream<Integer> {
    * @param headers the received headers
    */
   protected void transportHeadersReceived(Metadata headers) {
-    Preconditions.checkNotNull(headers);
+    Preconditions.checkNotNull(headers, "headers");
     if (transportError != null) {
       // Already received a transport error so just augment it.
       transportError = transportError.augmentDescription(headers.toString());
@@ -137,7 +147,8 @@ public abstract class Http2ClientStream extends AbstractClientStream<Integer> {
       inboundDataReceived(frame);
       if (endOfStream) {
         // This is a protocol violation as we expect to receive trailers.
-        transportError = Status.INTERNAL.withDescription("Received EOS on DATA frame");
+        transportError =
+            Status.INTERNAL.withDescription("Received unexpected EOS on DATA frame from server.");
         transportErrorMetadata = new Metadata();
         inboundTransportError(transportError, transportErrorMetadata);
       }
@@ -150,7 +161,7 @@ public abstract class Http2ClientStream extends AbstractClientStream<Integer> {
    * @param trailers the received terminal trailer metadata
    */
   protected void transportTrailersReceived(Metadata trailers) {
-    Preconditions.checkNotNull(trailers);
+    Preconditions.checkNotNull(trailers, "trailers");
     if (transportError != null) {
       // Already received a transport error so just augment it.
       transportError = transportError.augmentDescription(trailers.toString());
@@ -237,8 +248,8 @@ public abstract class Http2ClientStream extends AbstractClientStream<Integer> {
    * the application layer.
    */
   private static void stripTransportDetails(Metadata metadata) {
-    metadata.removeAll(HTTP2_STATUS);
-    metadata.removeAll(Status.CODE_KEY);
-    metadata.removeAll(Status.MESSAGE_KEY);
+    metadata.discardAll(HTTP2_STATUS);
+    metadata.discardAll(Status.CODE_KEY);
+    metadata.discardAll(Status.MESSAGE_KEY);
   }
 }

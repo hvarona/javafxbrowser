@@ -38,7 +38,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import io.grpc.Metadata;
@@ -49,10 +49,10 @@ import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -61,6 +61,12 @@ import javax.annotation.Nullable;
  * Common utilities for GRPC.
  */
 public final class GrpcUtil {
+
+  // Certain production AppEngine runtimes have constraints on threading and socket handling
+  // that need to be accommodated.
+  public static final boolean IS_RESTRICTED_APPENGINE =
+      "Production".equals(System.getProperty("com.google.appengine.runtime.environment"))
+          && "1.7".equals(System.getProperty("java.specification.version"));
 
   /**
    * {@link io.grpc.Metadata.Key} for the timeout header.
@@ -371,13 +377,10 @@ public final class GrpcUtil {
    */
   public static final Resource<ExecutorService> SHARED_CHANNEL_EXECUTOR =
       new Resource<ExecutorService>() {
-        private static final String name = "grpc-default-executor";
+        private static final String NAME = "grpc-default-executor";
         @Override
         public ExecutorService create() {
-          return Executors.newCachedThreadPool(new ThreadFactoryBuilder()
-              .setDaemon(true)
-              .setNameFormat(name + "-%d")
-              .build());
+          return Executors.newCachedThreadPool(getThreadFactory(NAME + "-%d", true));
         }
 
         @Override
@@ -387,7 +390,7 @@ public final class GrpcUtil {
 
         @Override
         public String toString() {
-          return name;
+          return NAME;
         }
       };
 
@@ -402,10 +405,8 @@ public final class GrpcUtil {
           // ScheduledThreadPoolExecutor.
           ScheduledExecutorService service = Executors.newScheduledThreadPool(
               1,
-              new ThreadFactoryBuilder()
-                  .setDaemon(true)
-                  .setNameFormat("grpc-timer-%d")
-                  .build());
+              getThreadFactory("grpc-timer-%d", true));
+
           // If there are long timeouts that are cancelled, they will not actually be removed from
           // the executors queue.  This forces immediate removal upon cancellation to avoid a
           // memory leak.  Reflection is used because we cannot use methods added in Java 1.7.  If
@@ -431,10 +432,31 @@ public final class GrpcUtil {
         }
       };
 
+
+  /**
+   * Get a {@link ThreadFactory} suitable for use in the current environment.
+   * @param nameFormat to apply to threads created by the factory.
+   * @param daemon {@code true} if the threads the factory creates are daemon threads, {@code false}
+   *     otherwise.
+   * @return a {@link ThreadFactory}.
+   */
+  public static ThreadFactory getThreadFactory(String nameFormat, boolean daemon) {
+    ThreadFactory threadFactory = MoreExecutors.platformThreadFactory();
+    if (IS_RESTRICTED_APPENGINE) {
+      return threadFactory;
+    } else {
+      return new ThreadFactoryBuilder()
+          .setThreadFactory(threadFactory)
+          .setDaemon(daemon)
+          .setNameFormat(nameFormat)
+          .build();
+    }
+  }
+
   /**
    * The factory of default Stopwatches.
    */
-  static final Supplier<Stopwatch> STOPWATCH_SUPPLIER = new Supplier<Stopwatch>() {
+  public static final Supplier<Stopwatch> STOPWATCH_SUPPLIER = new Supplier<Stopwatch>() {
       @Override
       public Stopwatch get() {
         return Stopwatch.createUnstarted();
@@ -461,42 +483,48 @@ public final class GrpcUtil {
   @VisibleForTesting
   static class TimeoutMarshaller implements Metadata.AsciiMarshaller<Long> {
 
-    // ImmutableMap's have consistent iteration order.
-    private static final ImmutableMap<Character, TimeUnit> UNITS =
-        ImmutableMap.<Character, TimeUnit>builder()
-            .put('n', TimeUnit.NANOSECONDS)
-            .put('u', TimeUnit.MICROSECONDS)
-            .put('m', TimeUnit.MILLISECONDS)
-            .put('S', TimeUnit.SECONDS)
-            .put('M', TimeUnit.MINUTES)
-            .put('H', TimeUnit.HOURS)
-            .build();
-
     @Override
     public String toAsciiString(Long timeoutNanos) {
-      checkArgument(timeoutNanos >= 0, "Negative timeout");
-      // the smallest integer with 9 digits
-      int cutoff = 100000000;
-      for (Entry<Character, TimeUnit> unit : UNITS.entrySet()) {
-        long timeout = unit.getValue().convert(timeoutNanos, TimeUnit.NANOSECONDS);
-        if (timeout < cutoff) {
-          return Long.toString(timeout) + unit.getKey();
-        }
+      long cutoff = 100000000;
+      if (timeoutNanos < 0) {
+        throw new IllegalArgumentException("Timeout too small");
+      } else if (timeoutNanos < cutoff) {
+        return TimeUnit.NANOSECONDS.toNanos(timeoutNanos) + "n";
+      } else if (timeoutNanos < cutoff * 1000L) {
+        return TimeUnit.NANOSECONDS.toMicros(timeoutNanos) + "u";
+      } else if (timeoutNanos < cutoff * 1000L * 1000L) {
+        return TimeUnit.NANOSECONDS.toMillis(timeoutNanos) + "m";
+      } else if (timeoutNanos < cutoff * 1000L * 1000L * 1000L) {
+        return TimeUnit.NANOSECONDS.toSeconds(timeoutNanos) + "S";
+      } else if (timeoutNanos < cutoff * 1000L * 1000L * 1000L * 60L) {
+        return TimeUnit.NANOSECONDS.toMinutes(timeoutNanos) + "M";
+      } else {
+        return TimeUnit.NANOSECONDS.toHours(timeoutNanos) + "H";
       }
-      throw new IllegalArgumentException("Timeout too large");
     }
 
     @Override
     public Long parseAsciiString(String serialized) {
       checkArgument(serialized.length() > 0, "empty timeout");
       checkArgument(serialized.length() <= 9, "bad timeout format");
-      String valuePart = serialized.substring(0, serialized.length() - 1);
+      long value = Long.parseLong(serialized.substring(0, serialized.length() - 1));
       char unit = serialized.charAt(serialized.length() - 1);
-      TimeUnit timeUnit = UNITS.get(unit);
-      if (timeUnit != null) {
-        return timeUnit.toNanos(Long.parseLong(valuePart));
+      switch (unit) {
+        case 'n':
+          return TimeUnit.NANOSECONDS.toNanos(value);
+        case 'u':
+          return TimeUnit.MICROSECONDS.toNanos(value);
+        case 'm':
+          return TimeUnit.MILLISECONDS.toNanos(value);
+        case 'S':
+          return TimeUnit.SECONDS.toNanos(value);
+        case 'M':
+          return TimeUnit.MINUTES.toNanos(value);
+        case 'H':
+          return TimeUnit.HOURS.toNanos(value);
+        default:
+          throw new IllegalArgumentException(String.format("Invalid timeout unit: %s", unit));
       }
-      throw new IllegalArgumentException(String.format("Invalid timeout unit: %s", unit));
     }
   }
 

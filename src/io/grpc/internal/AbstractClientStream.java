@@ -48,7 +48,7 @@ import java.util.logging.Logger;
 /**
  * The abstract base class for {@link ClientStream} implementations.
  */
-public abstract class AbstractClientStream<IdT> extends AbstractStream<IdT>
+public abstract class AbstractClientStream extends AbstractStream
     implements ClientStream {
 
   private static final Logger log = Logger.getLogger(AbstractClientStream.class.getName());
@@ -63,9 +63,9 @@ public abstract class AbstractClientStream<IdT> extends AbstractStream<IdT>
   private Runnable closeListenerTask;
   private volatile boolean cancelled;
 
-  protected AbstractClientStream(WritableBufferAllocator bufferAllocator,
-                                 int maxMessageSize) {
-    super(bufferAllocator, maxMessageSize);
+  protected AbstractClientStream(WritableBufferAllocator bufferAllocator, int maxMessageSize,
+      StatsTraceContext statsTraceCtx) {
+    super(bufferAllocator, maxMessageSize, statsTraceCtx);
   }
 
   @Override

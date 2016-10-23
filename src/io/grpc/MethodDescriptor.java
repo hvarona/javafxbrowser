@@ -34,6 +34,7 @@ package io.grpc;
 import com.google.common.base.Preconditions;
 
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -54,6 +55,18 @@ public class MethodDescriptor<ReqT, RespT> {
   private final Marshaller<ReqT> requestMarshaller;
   private final Marshaller<RespT> responseMarshaller;
   private final boolean idempotent;
+  private final boolean safe;
+
+  private final AtomicReferenceArray<Object> rawMethodNames =
+      new AtomicReferenceArray<Object>(InternalKnownTransport.values().length);
+
+  final Object getRawMethodName(InternalKnownTransport t) {
+    return rawMethodNames.get(t.ordinal());
+  }
+
+  final void setRawMethodName(InternalKnownTransport t, Object o) {
+    rawMethodNames.lazySet(t.ordinal(), o);
+  }
 
   /**
    * The call type of a method.
@@ -135,6 +148,34 @@ public class MethodDescriptor<ReqT, RespT> {
     public T parse(InputStream stream);
   }
 
+  /** A marshaller that supports retrieving it's type parameter {@code T} at runtime. */
+  @ExperimentalApi("https://github.com/grpc/grpc-java/issues/2222")
+  public interface ReflectableMarshaller<T> extends Marshaller<T> {
+    /**
+     * Returns the {@code Class} that this marshaller serializes and deserializes. If inheritance is
+     * allowed, this is the base class or interface for all supported classes.
+     *
+     * @return non-{@code null} base class for all objects produced and consumed by this marshaller
+     */
+    public Class<T> getMessageClass();
+  }
+
+  /** A marshaller that uses a fixed instance of the type it produces. */
+  @ExperimentalApi("https://github.com/grpc/grpc-java/issues/2222")
+  public interface PrototypeMarshaller<T> extends ReflectableMarshaller<T> {
+    /**
+     * An instance of the expected message type, typically used as a schema and helper for producing
+     * other message instances. The {@code null} value may be a special value for the marshaller
+     * (like the equivalent of {@link Void}), so it is a valid return value. {@code null} does
+     * <em>not</em> mean "unsupported" or "unknown".
+     *
+     * <p>It is generally expected this would return the same instance each invocation, but it is
+     * not a requirement.
+     */
+    @Nullable
+    public T getMessagePrototype();
+  }
+
   /**
    * Creates a new {@code MethodDescriptor}.
    *
@@ -149,18 +190,24 @@ public class MethodDescriptor<ReqT, RespT> {
       Marshaller<RequestT> requestMarshaller,
       Marshaller<ResponseT> responseMarshaller) {
     return new MethodDescriptor<RequestT, ResponseT>(
-        type, fullMethodName, requestMarshaller, responseMarshaller, false);
+        type, fullMethodName, requestMarshaller, responseMarshaller, false, false);
   }
 
-  private MethodDescriptor(MethodType type, String fullMethodName,
-                           Marshaller<ReqT> requestMarshaller,
-                           Marshaller<RespT> responseMarshaller,
-                           boolean idempotent) {
+  private MethodDescriptor(
+      MethodType type, String fullMethodName,
+      Marshaller<ReqT> requestMarshaller,
+      Marshaller<RespT> responseMarshaller,
+      boolean idempotent,
+      boolean safe) {
+
     this.type = Preconditions.checkNotNull(type, "type");
     this.fullMethodName = Preconditions.checkNotNull(fullMethodName, "fullMethodName");
     this.requestMarshaller = Preconditions.checkNotNull(requestMarshaller, "requestMarshaller");
     this.responseMarshaller = Preconditions.checkNotNull(responseMarshaller, "responseMarshaller");
     this.idempotent = idempotent;
+    this.safe = safe;
+    Preconditions.checkArgument(!safe || type == MethodType.UNARY,
+        "Only unary methods can be specified safe");
   }
 
   /**
@@ -218,6 +265,20 @@ public class MethodDescriptor<ReqT, RespT> {
   }
 
   /**
+   * Returns the marshaller for the request type. Allows introspection of the request marshaller.
+   */
+  public Marshaller<ReqT> getRequestMarshaller() {
+    return requestMarshaller;
+  }
+
+  /**
+   * Returns the marshaller for the response type. Allows introspection of the response marshaller.
+   */
+  public Marshaller<RespT> getResponseMarshaller() {
+    return responseMarshaller;
+  }
+
+  /**
    * Returns whether this method is idempotent.
    */
   @ExperimentalApi("https://github.com/grpc/grpc-java/issues/1775")
@@ -234,7 +295,33 @@ public class MethodDescriptor<ReqT, RespT> {
   @ExperimentalApi("https://github.com/grpc/grpc-java/issues/1775")
   public MethodDescriptor<ReqT, RespT> withIdempotent(boolean idempotent) {
     return new MethodDescriptor<ReqT, RespT>(type, fullMethodName, requestMarshaller,
-        responseMarshaller, idempotent);
+        responseMarshaller, idempotent, safe);
+  }
+
+  /**
+   * Returns whether this method is safe.
+   *
+   * <p>A safe request does nothing except retrieval so it has no side effects on the server side.
+   */
+  @ExperimentalApi("https://github.com/grpc/grpc-java/issues/1775")
+  public boolean isSafe() {
+    return safe;
+  }
+
+  /**
+   * Setting safe on the method. Works only with unary rpcs.
+   *
+   * <p>A safe request does nothing except retrieval so it has no side effects on the server side.
+   * The method will try to fetch cached responses if it's both safe and idempotent. This is best
+   * effort and may have performance impact if the method is not desgined to be cacheable.
+   *
+   * @param safe whether the method is safe.
+   * @return a new copy of MethodDescriptor.
+   */
+  @ExperimentalApi("https://github.com/grpc/grpc-java/issues/1775")
+  public MethodDescriptor<ReqT, RespT> withSafe(boolean safe) {
+    return new MethodDescriptor<ReqT, RespT>(type, fullMethodName, requestMarshaller,
+        responseMarshaller, idempotent, safe);
   }
 
   /**

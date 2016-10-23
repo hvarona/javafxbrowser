@@ -94,4 +94,9 @@ public class BrowserConfigurator implements java.io.Serializable {
                 .setHomepage(homepage).build();
     }
 
+    public void SetConfig(Config conf) {
+        homepage = conf.getHomepage();
+        defaultDownloadDirectory = conf.getDefaultDownloadDirectory();
+    }
+
 }

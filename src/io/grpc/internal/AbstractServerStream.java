@@ -43,7 +43,6 @@ import javax.annotation.Nullable;
  * Abstract base class for {@link ServerStream} implementations. Extending classes only need to
  * implement {@link #transportState()} and {@link #abstractServerStreamSink()}. Must only be called
  * from the sending application thread.
-
  */
 public abstract class AbstractServerStream extends AbstractStream2
     implements ServerStream, MessageFramer.Sink {
@@ -91,11 +90,14 @@ public abstract class AbstractServerStream extends AbstractStream2
   }
 
   private final MessageFramer framer;
+  private final StatsTraceContext statsTraceCtx;
   private boolean outboundClosed;
   private boolean headersSent;
 
-  protected AbstractServerStream(WritableBufferAllocator bufferAllocator) {
-    framer = new MessageFramer(this, bufferAllocator);
+  protected AbstractServerStream(WritableBufferAllocator bufferAllocator,
+      StatsTraceContext statsTraceCtx) {
+    this.statsTraceCtx = Preconditions.checkNotNull(statsTraceCtx, "statsTraceCtx");
+    framer = new MessageFramer(this, bufferAllocator, statsTraceCtx);
   }
 
   @Override
@@ -145,8 +147,8 @@ public abstract class AbstractServerStream extends AbstractStream2
   }
 
   private void addStatusToTrailers(Metadata trailers, Status status) {
-    trailers.removeAll(Status.CODE_KEY);
-    trailers.removeAll(Status.MESSAGE_KEY);
+    trailers.discardAll(Status.CODE_KEY);
+    trailers.discardAll(Status.MESSAGE_KEY);
     trailers.put(Status.CODE_KEY, status);
     if (status.getDescription() != null) {
       trailers.put(Status.MESSAGE_KEY, status.getDescription());
@@ -158,8 +160,18 @@ public abstract class AbstractServerStream extends AbstractStream2
     abstractServerStreamSink().cancel(status);
   }
 
+  @Override
+  public final boolean isReady() {
+    return super.isReady();
+  }
+
   @Override public Attributes attributes() {
     return Attributes.EMPTY;
+  }
+
+  @Override
+  public StatsTraceContext statsTraceContext() {
+    return statsTraceCtx;
   }
 
   /** This should only called from the transport thread. */
@@ -168,8 +180,8 @@ public abstract class AbstractServerStream extends AbstractStream2
     private boolean listenerClosed;
     private ServerStreamListener listener;
 
-    protected TransportState(int maxMessageSize) {
-      super(maxMessageSize);
+    protected TransportState(int maxMessageSize, StatsTraceContext statsTraceCtx) {
+      super(maxMessageSize, statsTraceCtx);
     }
 
     /**
@@ -177,7 +189,7 @@ public abstract class AbstractServerStream extends AbstractStream2
      * thread.
      */
     public final void setListener(ServerStreamListener listener) {
-      this.listener = Preconditions.checkNotNull(listener);
+      this.listener = Preconditions.checkNotNull(listener, "listener");
 
       // Now that the stream has actually been initialized, call the listener's onReady callback if
       // appropriate.
@@ -241,6 +253,7 @@ public abstract class AbstractServerStream extends AbstractStream2
     private void closeListener(Status newStatus) {
       if (!listenerClosed) {
         listenerClosed = true;
+        onStreamDeallocated();
         closeDeframer();
         listener().closed(newStatus);
       }

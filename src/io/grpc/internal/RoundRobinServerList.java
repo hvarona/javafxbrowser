@@ -32,16 +32,18 @@
 package io.grpc.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
 
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.Status;
 import io.grpc.TransportManager;
 
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -60,7 +62,7 @@ public class RoundRobinServerList<T> {
   private RoundRobinServerList(TransportManager<T> tm, List<EquivalentAddressGroup> list) {
     this.tm = tm;
     this.list = list;
-    this.cyclingIter = Iterators.cycle(list);
+    this.cyclingIter = new CycleIterator<EquivalentAddressGroup>(list);
     this.requestDroppingTransport =
       tm.createFailingTransport(Status.UNAVAILABLE.withDescription("Throttled by LB"));
   }
@@ -94,8 +96,7 @@ public class RoundRobinServerList<T> {
 
   @NotThreadSafe
   public static class Builder<T> {
-    private final ImmutableList.Builder<EquivalentAddressGroup> listBuilder =
-        ImmutableList.builder();
+    private final List<EquivalentAddressGroup> list = new ArrayList<EquivalentAddressGroup>();
     private final TransportManager<T> tm;
 
     public Builder(TransportManager<T> tm) {
@@ -105,21 +106,66 @@ public class RoundRobinServerList<T> {
     /**
      * Adds a server to the list, or {@code null} for a drop entry.
      */
-    public void add(@Nullable SocketAddress address) {
-      listBuilder.add(new EquivalentAddressGroup(address));
+    public Builder<T> addSocketAddress(@Nullable SocketAddress address) {
+      list.add(new EquivalentAddressGroup(address));
+      return this;
     }
 
     /**
-     * Adds a list of servers to the list grouped into a single {@link EquivalentAddressGroup}.
+     * Adds a address group to the list.
      *
      * @param addresses the addresses to add
      */
-    public void addList(List<SocketAddress> addresses) {
-      listBuilder.add(new EquivalentAddressGroup(addresses));
+    public Builder<T> add(EquivalentAddressGroup addresses) {
+      list.add(addresses);
+      return this;
+    }
+
+    /**
+     * Adds a list of address groups.
+     *
+     * @param addresses the list of addresses group.
+     */
+    public Builder<T> addAll(Collection<EquivalentAddressGroup> addresses) {
+      list.addAll(addresses);
+      return this;
     }
 
     public RoundRobinServerList<T> build() {
-      return new RoundRobinServerList<T>(tm, listBuilder.build());
+      return new RoundRobinServerList<T>(tm,
+          Collections.unmodifiableList(new ArrayList<EquivalentAddressGroup>(list)));
+    }
+  }
+
+  private static final class CycleIterator<T> implements Iterator<T> {
+    private final List<T> list;
+    private int index;
+
+    public CycleIterator(List<T> list) {
+      this.list = list;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return !list.isEmpty();
+    }
+
+    @Override
+    public T next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      T val = list.get(index);
+      index++;
+      if (index >= list.size()) {
+        index -= list.size();
+      }
+      return val;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
     }
   }
 }

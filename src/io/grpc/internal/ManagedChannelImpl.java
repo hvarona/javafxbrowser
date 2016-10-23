@@ -35,6 +35,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.census.CensusContextFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
@@ -52,7 +53,7 @@ import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.NameResolver;
-import io.grpc.ResolvedServerInfo;
+import io.grpc.ResolvedServerInfoGroup;
 import io.grpc.Status;
 import io.grpc.TransportManager;
 import io.grpc.TransportManager.InterimTransport;
@@ -63,10 +64,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -115,6 +116,7 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
   private final SharedResourceHolder.Resource<ScheduledExecutorService> timerService;
   private final Supplier<Stopwatch> stopwatchSupplier;
   private final long idleTimeoutMillis;
+  private final CensusContextFactory censusFactory;
 
   /**
    * Executor that runs deadline timers for requests.
@@ -139,14 +141,16 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
   private LoadBalancer<ClientTransport> loadBalancer;
 
   /**
-   * Maps EquivalentAddressGroups to transports for that server.
+   * Maps EquivalentAddressGroups to transports for that server. "lock" must be held when mutating.
    */
-  @GuardedBy("lock")
-  private final Map<EquivalentAddressGroup, TransportSet> transports =
-      new HashMap<EquivalentAddressGroup, TransportSet>();
+  // Even though we set a concurrency level of 1, this is better than Collections.synchronizedMap
+  // because it doesn't need to acquire a lock for reads.
+  private final ConcurrentMap<EquivalentAddressGroup, TransportSet> transports =
+      new ConcurrentHashMap<EquivalentAddressGroup, TransportSet>(16, .75f, 1);
 
   /**
-   * TransportSets that are shutdown (but not yet terminated) due to channel idleness.
+   * TransportSets that are shutdown (but not yet terminated) due to channel idleness or channel
+   * shut down.
    */
   @GuardedBy("lock")
   private final HashSet<TransportSet> decommissionedTransports = new HashSet<TransportSet>();
@@ -249,9 +253,14 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     class NameResolverStartTask implements Runnable {
       @Override
       public void run() {
+        NameResolverListenerImpl listener = new NameResolverListenerImpl(balancer);
         // This may trigger quite a few non-trivial work in LoadBalancer and NameResolver,
         // we don't want to do it in the lock.
-        resolver.start(new NameResolverListenerImpl(balancer));
+        try {
+          resolver.start(listener);
+        } catch (Throwable t) {
+          listener.onError(Status.fromThrowable(t));
+        }
       }
     }
 
@@ -259,6 +268,15 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     return balancer;
   }
 
+  // ErrorProne's GuardedByChecker can't figure out that the idleModeTimer is a nested instance of
+  // this particular instance. It is worried about something like:
+  // ManagedChannelImpl a = ...;
+  // ManagedChannelImpl b = ...;
+  // a.idleModeTimer = b.idleModeTimer;
+  // a.cancelIdleTimer(); // access of b.idleModeTimer is guarded by a.lock, not b.lock
+  //
+  // _We_ know that isn't happening, so we suppress the warning.
+  @SuppressWarnings("GuardedByChecker")
   @GuardedBy("lock")
   private void cancelIdleTimer() {
     if (idleModeTimerFuture != null) {
@@ -309,7 +327,7 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
       SharedResourceHolder.Resource<ScheduledExecutorService> timerService,
       Supplier<Stopwatch> stopwatchSupplier, long idleTimeoutMillis,
       @Nullable Executor executor, @Nullable String userAgent,
-      List<ClientInterceptor> interceptors) {
+      List<ClientInterceptor> interceptors, CensusContextFactory censusFactory) {
     this.target = checkNotNull(target, "target");
     this.nameResolverFactory = checkNotNull(nameResolverFactory, "nameResolverFactory");
     this.nameResolverParams = checkNotNull(nameResolverParams, "nameResolverParams");
@@ -335,20 +353,11 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     this.decompressorRegistry = decompressorRegistry;
     this.compressorRegistry = compressorRegistry;
     this.userAgent = userAgent;
+    this.censusFactory = checkNotNull(censusFactory, "censusFactory");
 
     if (log.isLoggable(Level.INFO)) {
       log.log(Level.INFO, "[{0}] Created with target {1}", new Object[] {getLogId(), target});
     }
-  }
-
-  private static boolean serversAreEmpty(List<? extends List<ResolvedServerInfo>> servers) {
-    for (List<ResolvedServerInfo> serverInfos : servers) {
-      if (!serverInfos.isEmpty()) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   @VisibleForTesting
@@ -421,6 +430,8 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
       maybeTerminateChannel();
       if (!terminated) {
         transportsCopy.addAll(transports.values());
+        transports.clear();
+        decommissionedTransports.addAll(transportsCopy);
         delayedTransportsCopy.addAll(delayedTransports);
         oobTransportsCopy.addAll(oobTransports);
       }
@@ -468,6 +479,7 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     List<OobTransportProviderImpl> oobTransportsCopy;
     synchronized (lock) {
       transportsCopy = new ArrayList<TransportSet>(transports.values());
+      transportsCopy.addAll(decommissionedTransports);
       delayedTransportsCopy = new ArrayList<DelayedClientTransport>(delayedTransports);
       oobTransportsCopy = new ArrayList<OobTransportProviderImpl>(oobTransports);
     }
@@ -535,10 +547,13 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
       if (executor == null) {
         executor = ManagedChannelImpl.this.executor;
       }
+      StatsTraceContext statsTraceCtx = StatsTraceContext.newClientContext(
+          method.getFullMethodName(), censusFactory, stopwatchSupplier);
       return new ClientCallImpl<ReqT, RespT>(
           method,
           executor,
           callOptions,
+          statsTraceCtx,
           transportProvider,
           scheduledExecutor)
               .setDecompressorRegistry(decompressorRegistry)
@@ -585,7 +600,10 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     @Override
     public ClientTransport getTransport(final EquivalentAddressGroup addressGroup) {
       checkNotNull(addressGroup, "addressGroup");
-      TransportSet ts;
+      TransportSet ts = transports.get(addressGroup);
+      if (ts != null) {
+        return ts.obtainActiveTransport();
+      }
       synchronized (lock) {
         if (shutdown) {
           return SHUTDOWN_TRANSPORT;
@@ -640,7 +658,7 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     @Override
     public Channel makeChannel(ClientTransport transport) {
       return new SingleTransportChannel(
-          transport, executor, scheduledExecutor, authority());
+          censusFactory, transport, executor, scheduledExecutor, authority(), stopwatchSupplier);
     }
 
     @Override
@@ -665,7 +683,7 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     return GrpcUtil.getLogId(this);
   }
 
-  private class NameResolverListenerImpl implements NameResolver.Listener {
+  private static class NameResolverListenerImpl implements NameResolver.Listener {
     final LoadBalancer<ClientTransport> balancer;
 
     NameResolverListenerImpl(LoadBalancer<ClientTransport> balancer) {
@@ -673,18 +691,19 @@ public final class ManagedChannelImpl extends ManagedChannel implements WithLogI
     }
 
     @Override
-    public void onUpdate(List<? extends List<ResolvedServerInfo>> servers, Attributes config) {
-      if (serversAreEmpty(servers)) {
+    public void onUpdate(List<ResolvedServerInfoGroup> servers, Attributes config) {
+      if (servers.isEmpty()) {
         onError(Status.UNAVAILABLE.withDescription("NameResolver returned an empty list"));
-      } else {
-        try {
-          balancer.handleResolvedAddresses(servers, config);
-        } catch (Throwable e) {
-          // It must be a bug! Push the exception back to LoadBalancer in the hope that it may be
-          // propagated to the application.
-          balancer.handleNameResolutionError(Status.INTERNAL.withCause(e)
-              .withDescription("Thrown from handleResolvedAddresses(): " + e));
-        }
+        return;
+      }
+
+      try {
+        balancer.handleResolvedAddresses(servers, config);
+      } catch (Throwable e) {
+        // It must be a bug! Push the exception back to LoadBalancer in the hope that it may be
+        // propagated to the application.
+        balancer.handleNameResolutionError(Status.INTERNAL.withCause(e)
+            .withDescription("Thrown from handleResolvedAddresses(): " + e));
       }
     }
 

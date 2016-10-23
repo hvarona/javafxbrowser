@@ -41,8 +41,8 @@ import java.util.concurrent.Executor;
 
 abstract class ForwardingConnectionClientTransport implements ConnectionClientTransport {
   @Override
-  public void start(Listener listener) {
-    delegate().start(listener);
+  public Runnable start(Listener listener) {
+    return delegate().start(listener);
   }
 
   @Override
@@ -57,8 +57,9 @@ abstract class ForwardingConnectionClientTransport implements ConnectionClientTr
 
   @Override
   public ClientStream newStream(
-      MethodDescriptor<?, ?> method, Metadata headers, CallOptions callOptions) {
-    return delegate().newStream(method, headers, callOptions);
+      MethodDescriptor<?, ?> method, Metadata headers, CallOptions callOptions,
+      StatsTraceContext statsTraceCtx) {
+    return delegate().newStream(method, headers, callOptions, statsTraceCtx);
   }
 
   @Override

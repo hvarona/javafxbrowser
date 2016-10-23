@@ -37,9 +37,9 @@ import io.grpc.Attributes;
 import io.grpc.CallOptions;
 import io.grpc.Compressor;
 import io.grpc.Decompressor;
+import io.grpc.Grpc;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import io.grpc.ServerCall;
 import io.grpc.Status;
 import io.grpc.internal.ClientStream;
 import io.grpc.internal.ClientStreamListener;
@@ -51,6 +51,7 @@ import io.grpc.internal.ServerStream;
 import io.grpc.internal.ServerStreamListener;
 import io.grpc.internal.ServerTransport;
 import io.grpc.internal.ServerTransportListener;
+import io.grpc.internal.StatsTraceContext;
 
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -62,6 +63,7 @@ import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -71,7 +73,7 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
 
   private final String name;
   private ServerTransportListener serverTransportListener;
-  private final Attributes serverStreamAttributes;
+  private Attributes serverStreamAttributes;
   private ManagedClientTransport.Listener clientTransportListener;
   @GuardedBy("this")
   private boolean shutdown;
@@ -84,13 +86,11 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
 
   public InProcessTransport(String name) {
     this.name = name;
-    this.serverStreamAttributes = Attributes.newBuilder()
-        .set(ServerCall.REMOTE_ADDR_KEY, new InProcessSocketAddress(name))
-        .build();
   }
 
+  @CheckReturnValue
   @Override
-  public synchronized void start(ManagedClientTransport.Listener listener) {
+  public synchronized Runnable start(ManagedClientTransport.Listener listener) {
     this.clientTransportListener = listener;
     InProcessServer server = InProcessServer.findServer(name);
     if (server != null) {
@@ -99,7 +99,7 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
     if (serverTransportListener == null) {
       shutdownStatus = Status.UNAVAILABLE.withDescription("Could not find server: " + name);
       final Status localShutdownStatus = shutdownStatus;
-      Thread shutdownThread = new Thread(new Runnable() {
+      return new Runnable() {
         @Override
         public void run() {
           synchronized (InProcessTransport.this) {
@@ -107,28 +107,27 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
             notifyTerminated();
           }
         }
-      });
-      shutdownThread.setDaemon(true);
-      shutdownThread.setName("grpc-inprocess-shutdown");
-      shutdownThread.start();
-      return;
+      };
     }
-    Thread readyThread = new Thread(new Runnable() {
+    return new Runnable() {
       @Override
+      @SuppressWarnings("deprecation")
       public void run() {
         synchronized (InProcessTransport.this) {
+          Attributes serverTransportAttrs = Attributes.newBuilder()
+              .set(Grpc.TRANSPORT_ATTR_REMOTE_ADDR, new InProcessSocketAddress(name))
+              .build();
+          serverStreamAttributes = serverTransportListener.transportReady(serverTransportAttrs);
           clientTransportListener.transportReady();
         }
       }
-    });
-    readyThread.setDaemon(true);
-    readyThread.setName("grpc-inprocess-ready");
-    readyThread.start();
+    };
   }
 
   @Override
   public synchronized ClientStream newStream(
-      final MethodDescriptor<?, ?> method, final Metadata headers, final CallOptions callOptions) {
+      final MethodDescriptor<?, ?> method, final Metadata headers, final CallOptions callOptions,
+      StatsTraceContext clientStatsTraceContext) {
     if (shutdownStatus != null) {
       final Status capturedStatus = shutdownStatus;
       return new NoopClientStream() {
@@ -138,14 +137,15 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
         }
       };
     }
-
-    return new InProcessStream(method, headers).clientStream;
+    StatsTraceContext serverStatsTraceContext = serverTransportListener.methodDetermined(
+        method.getFullMethodName(), headers);
+    return new InProcessStream(method, headers, serverStatsTraceContext).clientStream;
   }
 
   @Override
   public synchronized ClientStream newStream(
       final MethodDescriptor<?, ?> method, final Metadata headers) {
-    return newStream(method, headers, CallOptions.DEFAULT);
+    return newStream(method, headers, CallOptions.DEFAULT, StatsTraceContext.NOOP);
   }
 
   @Override
@@ -234,13 +234,16 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
   private class InProcessStream {
     private final InProcessServerStream serverStream = new InProcessServerStream();
     private final InProcessClientStream clientStream = new InProcessClientStream();
+    private final StatsTraceContext serverStatsTraceContext;
     private final Metadata headers;
-    private MethodDescriptor<?, ?> method;
+    private final MethodDescriptor<?, ?> method;
 
-    private InProcessStream(MethodDescriptor<?, ?> method, Metadata headers) {
-      this.method = checkNotNull(method);
-      this.headers = checkNotNull(headers);
-
+    private InProcessStream(MethodDescriptor<?, ?> method, Metadata headers,
+        StatsTraceContext serverStatsTraceContext) {
+      this.method = checkNotNull(method, "method");
+      this.headers = checkNotNull(headers, "headers");
+      this.serverStatsTraceContext =
+          checkNotNull(serverStatsTraceContext, "serverStatsTraceContext");
     }
 
     // Can be called multiple times due to races on both client and server closing at same time.
@@ -410,6 +413,11 @@ class InProcessTransport implements ServerTransport, ConnectionClientTransport {
 
       @Override public Attributes attributes() {
         return serverStreamAttributes;
+      }
+
+      @Override
+      public StatsTraceContext statsTraceContext() {
+        return serverStatsTraceContext;
       }
     }
 

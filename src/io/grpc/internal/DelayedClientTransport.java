@@ -37,6 +37,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
 import io.grpc.CallOptions;
+import io.grpc.Context;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
@@ -95,8 +96,9 @@ class DelayedClientTransport implements ManagedClientTransport {
   }
 
   @Override
-  public void start(Listener listener) {
+  public Runnable start(Listener listener) {
     this.listener = Preconditions.checkNotNull(listener, "listener");
+    return null;
   }
 
   /**
@@ -111,8 +113,8 @@ class DelayedClientTransport implements ManagedClientTransport {
    * {@link FailingClientStream} is returned.
    */
   @Override
-  public ClientStream newStream(MethodDescriptor<?, ?> method, Metadata headers, CallOptions
-      callOptions) {
+  public ClientStream newStream(MethodDescriptor<?, ?> method, Metadata headers,
+      CallOptions callOptions, StatsTraceContext statsTraceCtx) {
     Supplier<ClientTransport> supplier = transportSupplier;
     if (supplier == null) {
       synchronized (lock) {
@@ -122,7 +124,8 @@ class DelayedClientTransport implements ManagedClientTransport {
           if (backoffStatus != null && !callOptions.isWaitForReady()) {
             return new FailingClientStream(backoffStatus);
           }
-          PendingStream pendingStream = new PendingStream(method, headers, callOptions);
+          PendingStream pendingStream = new PendingStream(method, headers, callOptions,
+              statsTraceCtx);
           pendingStreams.add(pendingStream);
           if (pendingStreams.size() == 1) {
             listener.transportInUse(true);
@@ -132,14 +135,14 @@ class DelayedClientTransport implements ManagedClientTransport {
       }
     }
     if (supplier != null) {
-      return supplier.get().newStream(method, headers, callOptions);
+      return supplier.get().newStream(method, headers, callOptions, statsTraceCtx);
     }
     return new FailingClientStream(Status.UNAVAILABLE.withDescription("transport shutdown"));
   }
 
   @Override
   public ClientStream newStream(MethodDescriptor<?, ?> method, Metadata headers) {
-    return newStream(method, headers, CallOptions.DEFAULT);
+    return newStream(method, headers, CallOptions.DEFAULT, StatsTraceContext.NOOP);
   }
 
   @Override
@@ -320,7 +323,11 @@ class DelayedClientTransport implements ManagedClientTransport {
    */
   void startBackoff(final Status status) {
     synchronized (lock) {
-      Preconditions.checkState(backoffStatus == null);
+      if (shutdown) {
+        return;
+      }
+      Preconditions.checkState(backoffStatus == null,
+          "Error when calling startBackoff: transport is already in backoff period");
       backoffStatus = Status.UNAVAILABLE.withDescription("Channel in TRANSIENT_FAILURE state")
           .withCause(status.asRuntimeException());
       final ArrayList<PendingStream> failFastPendingStreams = new ArrayList<PendingStream>();
@@ -333,14 +340,17 @@ class DelayedClientTransport implements ManagedClientTransport {
             it.remove();
           }
         }
-        streamCreationExecutor.execute(new Runnable() {
+
+        class FailTheFailFastPendingStreams implements Runnable {
           @Override
           public void run() {
             for (PendingStream stream : failFastPendingStreams) {
               stream.setStream(new FailingClientStream(status));
             }
           }
-        });
+        }
+
+        streamCreationExecutor.execute(new FailTheFailFastPendingStreams());
       }
     }
   }
@@ -351,6 +361,8 @@ class DelayedClientTransport implements ManagedClientTransport {
    */
   void endBackoff() {
     synchronized (lock) {
+      Preconditions.checkState(backoffStatus != null,
+          "Error when calling endBackoff: transport is not in backoff period");
       backoffStatus = null;
     }
   }
@@ -370,16 +382,27 @@ class DelayedClientTransport implements ManagedClientTransport {
     private final MethodDescriptor<?, ?> method;
     private final Metadata headers;
     private final CallOptions callOptions;
+    private final Context context;
+    private final StatsTraceContext statsTraceCtx;
 
     private PendingStream(MethodDescriptor<?, ?> method, Metadata headers,
-        CallOptions callOptions) {
+        CallOptions callOptions, StatsTraceContext statsTraceCtx) {
       this.method = method;
       this.headers = headers;
       this.callOptions = callOptions;
+      this.context = Context.current();
+      this.statsTraceCtx = statsTraceCtx;
     }
 
     private void createRealStream(ClientTransport transport) {
-      setStream(transport.newStream(method, headers, callOptions));
+      ClientStream realStream;
+      Context origContext = context.attach();
+      try {
+        realStream = transport.newStream(method, headers, callOptions, statsTraceCtx);
+      } finally {
+        context.detach(origContext);
+      }
+      setStream(realStream);
     }
 
     @Override

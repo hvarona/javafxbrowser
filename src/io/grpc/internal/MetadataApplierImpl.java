@@ -37,6 +37,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import io.grpc.CallCredentials.MetadataApplier;
 import io.grpc.CallOptions;
+import io.grpc.Context;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
@@ -49,6 +50,8 @@ final class MetadataApplierImpl implements MetadataApplier {
   private final MethodDescriptor<?, ?> method;
   private final Metadata origHeaders;
   private final CallOptions callOptions;
+  private final Context ctx;
+  private final StatsTraceContext statsTraceCtx;
 
   private final Object lock = new Object();
 
@@ -64,11 +67,13 @@ final class MetadataApplierImpl implements MetadataApplier {
   DelayedStream delayedStream;
 
   MetadataApplierImpl(ClientTransport transport, MethodDescriptor<?, ?> method,
-      Metadata origHeaders, CallOptions callOptions) {
+      Metadata origHeaders, CallOptions callOptions, StatsTraceContext statsTraceCtx) {
     this.transport = transport;
     this.method = method;
     this.origHeaders = origHeaders;
     this.callOptions = callOptions;
+    this.ctx = Context.current();
+    this.statsTraceCtx = statsTraceCtx;
   }
 
   @Override
@@ -76,7 +81,14 @@ final class MetadataApplierImpl implements MetadataApplier {
     checkState(!finalized, "apply() or fail() already called");
     checkNotNull(headers, "headers");
     origHeaders.merge(headers);
-    finalizeWith(transport.newStream(method, origHeaders, callOptions));
+    ClientStream realStream;
+    Context origCtx = ctx.attach();
+    try {
+      realStream = transport.newStream(method, origHeaders, callOptions, statsTraceCtx);
+    } finally {
+      ctx.detach(origCtx);
+    }
+    finalizeWith(realStream);
   }
 
   @Override
