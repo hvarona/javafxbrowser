@@ -5,6 +5,8 @@ import io.grpc.ServerBuilder;
 import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafxbrowser.cfg.BrowserConfigurator;
 import javafxbrowser.rpc.Config;
 import javafxbrowser.rpc.ServerPetitionGrpc;
@@ -17,7 +19,7 @@ public class JavaFxBrowserBase extends ServerPetitionGrpc.ServerPetitionImplBase
 
     private BrowserConfigurator config;
     private static Server server;
-    private final static int port = 12000;
+    public final static int port = 12000;
 
     public JavaFxBrowserBase() {
         config = new BrowserConfigurator();
@@ -51,5 +53,12 @@ public class JavaFxBrowserBase extends ServerPetitionGrpc.ServerPetitionImplBase
                 System.err.println("*** server shut down");
             }
         });
+        while (true) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(JavaFxBrowserBase.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }

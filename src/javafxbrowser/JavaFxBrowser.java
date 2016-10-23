@@ -1,6 +1,11 @@
 package javafxbrowser;
 
 import insidefx.undecorator.Undecorator;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.NameResolver;
+import io.grpc.internal.GrpcUtil;
+import io.grpc.netty.NettyChannelBuilder;
 import java.net.CookieManager;
 import java.net.URL;
 import java.text.DateFormat;
@@ -29,7 +34,9 @@ import javafxbrowser.manager.AppletHandler;
 import javafxbrowser.manager.CacheHandler;
 import javafxbrowser.manager.CookieHandler;
 import javafxbrowser.manager.TagHandler;
+import javafxbrowser.rpc.ServerPetitionGrpc;
 import javafxbrowser.util.HistoryEntry;
+import io.grpc.internal.DnsNameResolverProvider;
 
 /**
  *
@@ -50,13 +57,23 @@ public class JavaFxBrowser extends Application {
 
     private final Map<Tab, BrowserFXFrame> browserFrames = new HashMap();
 
+    private ManagedChannel channel;
+    private ServerPetitionGrpc.ServerPetitionBlockingStub blockingStub;
+    private ServerPetitionGrpc.ServerPetitionStub asyncStub;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
+        channel = NettyChannelBuilder.forAddress("localhost", JavaFxBrowserBase.port)
+                .nameResolverFactory(new DnsNameResolverProvider())
+                .usePlaintext(true).build();
+        blockingStub = ServerPetitionGrpc.newBlockingStub(channel);
+        asyncStub = ServerPetitionGrpc.newStub(channel);
+
         cacheHandler = new CacheHandler();
         URL.setURLStreamHandlerFactory(cacheHandler);
         cookieHandler = new CookieHandler();
         CookieManager.setDefault(cookieHandler.getCookieManager());
-        //defaultConfig = new BrowserConfigurator();
+        defaultConfig = new BrowserConfigurator();
         this.getConfig();
         tabs.setTabMinHeight(30);
         tabs.setTabMaxWidth(40);
@@ -236,6 +253,7 @@ public class JavaFxBrowser extends Application {
     }
 
     public BrowserConfigurator getConfig() {
+        defaultConfig.SetConfig(blockingStub.getConfig(null));
         //defaultConfig = interComm.getConfig();
         return defaultConfig;
     }
@@ -278,57 +296,14 @@ public class JavaFxBrowser extends Application {
     }
 
     public void setConfig() {
-        //interComm.setConfig(defaultConfig);
+        blockingStub.setConfig(defaultConfig.getConfig());
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        /*SwingUtilities.invokeLater(new Runnable() {
 
-         @Override
-         public void run() {
-         try {
-         UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-         } catch (Exception e) {
-         }
-
-         BrowserFrame main = new BrowserFrame();
-         main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-         main.setVisible(true);
-         main.loadURL("http://www.google.com/"); //Home Page
-         }
-         });*/
-        int status = 0;
-        //ic = null;
-        /*try {
-            ic = Ice.Util.initialize(args);
-            Ice.ObjectPrx base = ic.stringToProxy("JavaFxBroswerInterComm:default -p 12234");
-            interComm = InterCommPrxHelper.checkedCast(base);
-            if (interComm == null) {
-                throw new Error("Invalid proxy");
-            }
-
-            interComm.printString("Hello World!");
-        } catch (Ice.LocalException e) {
-            e.printStackTrace();
-            status = 1;
-        } catch (Exception e) {
-            //System.err.println(e.getMessage());
-            status = 1;
-        }
-        /*if (ic != null) {
-         // Clean up
-         //
-         try {
-         ic.destroy();
-         } catch (Exception e) {
-         System.err.println(e.getMessage());
-         status = 1;
-         }
-         }*/
-        //System.exit(status);
         launch(args);
     }
 
