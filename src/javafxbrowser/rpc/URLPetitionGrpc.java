@@ -383,6 +383,15 @@ public class URLPetitionGrpc {
           io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.StringObject.getDefaultInstance()));
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Void,
+      javafxbrowser.rpc.Long> METHOD_GET_INPUT_STREAM =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "getInputStream"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Long.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Void,
       javafxbrowser.rpc.Void> METHOD_INPUT_STREAM_CLOSE =
       io.grpc.MethodDescriptor.create(
           io.grpc.MethodDescriptor.MethodType.UNARY,
@@ -771,6 +780,13 @@ public class URLPetitionGrpc {
 
     /**
      */
+    public void getInputStream(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_GET_INPUT_STREAM, responseObserver);
+    }
+
+    /**
+     */
     public void inputStreamClose(javafxbrowser.rpc.Void request,
         io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
       asyncUnimplementedUnaryCall(METHOD_INPUT_STREAM_CLOSE, responseObserver);
@@ -1107,6 +1123,13 @@ public class URLPetitionGrpc {
                 javafxbrowser.rpc.StringObject,
                 javafxbrowser.rpc.StringObject>(
                   this, METHODID_GUESS_CONTENT_TYPE_FROM_NAME)))
+          .addMethod(
+            METHOD_GET_INPUT_STREAM,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.Void,
+                javafxbrowser.rpc.Long>(
+                  this, METHODID_GET_INPUT_STREAM)))
           .addMethod(
             METHOD_INPUT_STREAM_CLOSE,
             asyncUnaryCall(
@@ -1512,6 +1535,14 @@ public class URLPetitionGrpc {
 
     /**
      */
+    public void getInputStream(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_GET_INPUT_STREAM, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void inputStreamClose(javafxbrowser.rpc.Void request,
         io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
       asyncUnaryCall(
@@ -1878,6 +1909,13 @@ public class URLPetitionGrpc {
     public javafxbrowser.rpc.StringObject guessContentTypeFromName(javafxbrowser.rpc.StringObject request) {
       return blockingUnaryCall(
           getChannel(), METHOD_GUESS_CONTENT_TYPE_FROM_NAME, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Long getInputStream(javafxbrowser.rpc.Void request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_GET_INPUT_STREAM, getCallOptions(), request);
     }
 
     /**
@@ -2282,6 +2320,14 @@ public class URLPetitionGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Long> getInputStream(
+        javafxbrowser.rpc.Void request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_GET_INPUT_STREAM, getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Void> inputStreamClose(
         javafxbrowser.rpc.Void request) {
       return futureUnaryCall(
@@ -2392,15 +2438,16 @@ public class URLPetitionGrpc {
   private static final int METHODID_SET_DEFAULT_REQUEST_PROPERTY = 36;
   private static final int METHODID_GET_DEFAULT_REQUEST_PROPERTY = 37;
   private static final int METHODID_GUESS_CONTENT_TYPE_FROM_NAME = 38;
-  private static final int METHODID_INPUT_STREAM_CLOSE = 39;
-  private static final int METHODID_INPUT_STREAM_READ = 40;
-  private static final int METHODID_INPUT_STREAM_READ_ARRAY = 41;
-  private static final int METHODID_INPUT_STREAM_READ_ARRAY_OFF = 42;
-  private static final int METHODID_INPUT_STREAM_SKIP = 43;
-  private static final int METHODID_INPUT_STREAM_AVAILABLE = 44;
-  private static final int METHODID_INPUT_STREAM_MARK = 45;
-  private static final int METHODID_INPUT_STREAM_RESET = 46;
-  private static final int METHODID_INPUT_STREAM_MARK_SUPPORTED = 47;
+  private static final int METHODID_GET_INPUT_STREAM = 39;
+  private static final int METHODID_INPUT_STREAM_CLOSE = 40;
+  private static final int METHODID_INPUT_STREAM_READ = 41;
+  private static final int METHODID_INPUT_STREAM_READ_ARRAY = 42;
+  private static final int METHODID_INPUT_STREAM_READ_ARRAY_OFF = 43;
+  private static final int METHODID_INPUT_STREAM_SKIP = 44;
+  private static final int METHODID_INPUT_STREAM_AVAILABLE = 45;
+  private static final int METHODID_INPUT_STREAM_MARK = 46;
+  private static final int METHODID_INPUT_STREAM_RESET = 47;
+  private static final int METHODID_INPUT_STREAM_MARK_SUPPORTED = 48;
 
   private static class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -2575,6 +2622,10 @@ public class URLPetitionGrpc {
           serviceImpl.guessContentTypeFromName((javafxbrowser.rpc.StringObject) request,
               (io.grpc.stub.StreamObserver<javafxbrowser.rpc.StringObject>) responseObserver);
           break;
+        case METHODID_GET_INPUT_STREAM:
+          serviceImpl.getInputStream((javafxbrowser.rpc.Void) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Long>) responseObserver);
+          break;
         case METHODID_INPUT_STREAM_CLOSE:
           serviceImpl.inputStreamClose((javafxbrowser.rpc.Void) request,
               (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void>) responseObserver);
@@ -2668,6 +2719,7 @@ public class URLPetitionGrpc {
         METHOD_SET_DEFAULT_REQUEST_PROPERTY,
         METHOD_GET_DEFAULT_REQUEST_PROPERTY,
         METHOD_GUESS_CONTENT_TYPE_FROM_NAME,
+        METHOD_GET_INPUT_STREAM,
         METHOD_INPUT_STREAM_CLOSE,
         METHOD_INPUT_STREAM_READ,
         METHOD_INPUT_STREAM_READ_ARRAY,
