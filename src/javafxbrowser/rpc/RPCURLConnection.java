@@ -91,7 +91,7 @@ public final class RPCURLConnection {
       "lt\030\003 \001(\005\"9\n\tFieldLong\022\r\n\005conId\030\001 \001(\003\022\014\n\004" +
       "name\030\002 \001(\t\022\017\n\007default\030\003 \001(\003\"5\n\010KeyValue\022" +
       "\r\n\005conId\030\001 \001(\003\022\013\n\003key\030\002 \001(\t\022\r\n\005value\030\003 \001" +
-      "(\t2\313\027\n\013URLPetition\0229\n\013constructor\022\030.rpcu" +
+      "(\t2\203\030\n\013URLPetition\0229\n\013constructor\022\030.rpcu" +
       "rlconn.StringObject\032\016.rpcurlconn.ID\"\000\022/\n" +
       "\007connect\022\020.rpcurlconn.Void\032\020.rpcurlconn." +
       "Void\"\000\0228\n\021setConnectTimeout\022\017.rpcurlconn" +
@@ -152,22 +152,24 @@ public final class RPCURLConnection {
       "uestProperty\022\030.rpcurlconn.StringObject\032\030" +
       ".rpcurlconn.StringObject\"\000\022P\n\030guessConte" +
       "ntTypeFromName\022\030.rpcurlconn.StringObject" +
-      "\032\030.rpcurlconn.StringObject\"\000\0228\n\020InputStr" +
-      "eamClose\022\020.rpcurlconn.Void\032\020.rpcurlconn." +
-      "Void\"\000\0226\n\017InputStreamRead\022\020.rpcurlconn.V" +
-      "oid\032\017.rpcurlconn.Int\"\000\022@\n\024InputStreamRea" +
-      "dArray\022\025.rpcurlconn.ByteArray\032\017.rpcurlco" +
-      "nn.Int\"\000\022I\n\027InputStreamReadArrayOff\022\033.rp",
-      "curlconn.ByteArrayOffset\032\017.rpcurlconn.In" +
-      "t\"\000\0227\n\017InputStreamSkip\022\020.rpcurlconn.Long" +
-      "\032\020.rpcurlconn.Long\"\000\022;\n\024InputStreamAvail" +
-      "able\022\020.rpcurlconn.Void\032\017.rpcurlconn.Int\"" +
-      "\000\0226\n\017InputStreamMark\022\017.rpcurlconn.Int\032\020." +
-      "rpcurlconn.Void\"\000\0228\n\020InputStreamReset\022\020." +
-      "rpcurlconn.Void\032\020.rpcurlconn.Void\"\000\022C\n\030I" +
-      "nputStreamMarkSupported\022\020.rpcurlconn.Voi" +
-      "d\032\023.rpcurlconn.Boolean\"\000B-\n\021javafxbrowse" +
-      "r.rpcB\020RPCURLConnectionP\001\242\002\003RUCb\006proto3"
+      "\032\030.rpcurlconn.StringObject\"\000\0226\n\016getInput" +
+      "Stream\022\020.rpcurlconn.Void\032\020.rpcurlconn.Lo" +
+      "ng\"\000\0228\n\020InputStreamClose\022\020.rpcurlconn.Vo" +
+      "id\032\020.rpcurlconn.Void\"\000\0226\n\017InputStreamRea" +
+      "d\022\020.rpcurlconn.Void\032\017.rpcurlconn.Int\"\000\022@" +
+      "\n\024InputStreamReadArray\022\025.rpcurlconn.Byte",
+      "Array\032\017.rpcurlconn.Int\"\000\022I\n\027InputStreamR" +
+      "eadArrayOff\022\033.rpcurlconn.ByteArrayOffset" +
+      "\032\017.rpcurlconn.Int\"\000\0227\n\017InputStreamSkip\022\020" +
+      ".rpcurlconn.Long\032\020.rpcurlconn.Long\"\000\022;\n\024" +
+      "InputStreamAvailable\022\020.rpcurlconn.Void\032\017" +
+      ".rpcurlconn.Int\"\000\0226\n\017InputStreamMark\022\017.r" +
+      "pcurlconn.Int\032\020.rpcurlconn.Void\"\000\0228\n\020Inp" +
+      "utStreamReset\022\020.rpcurlconn.Void\032\020.rpcurl" +
+      "conn.Void\"\000\022C\n\030InputStreamMarkSupported\022" +
+      "\020.rpcurlconn.Void\032\023.rpcurlconn.Boolean\"\000",
+      "B-\n\021javafxbrowser.rpcB\020RPCURLConnectionP" +
+      "\001\242\002\003RUCb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
