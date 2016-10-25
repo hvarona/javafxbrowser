@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafxbrowser.cfg.BrowserConfigurator;
+import javafxbrowser.manager.RPCURLConnection;
 import javafxbrowser.rpc.Config;
 import javafxbrowser.rpc.ServerPetitionGrpc;
 
@@ -42,7 +43,7 @@ public class JavaFxBrowserBase extends ServerPetitionGrpc.ServerPetitionImplBase
      * @param args
      */
     public static void main(String[] args) throws IOException {
-        server = NettyServerBuilder.forPort(port).addService(new JavaFxBrowserBase()).build();
+        server = NettyServerBuilder.forPort(port).addService(new JavaFxBrowserBase()).addService(new RPCURLConnection()).build();
         server.start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

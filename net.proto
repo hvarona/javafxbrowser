@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "javafxbrowser.rpc";
+option java_outer_classname = "RPCURLConnection";
+option objc_class_prefix = "RUC";
+
+package rpcurlconn;
+
+// Interface exported by the server.
+service URLPetition {
+  rpc constructor(StringObject) returns (ID){}
+  rpc connect(Void) returns (Void){}
+  rpc setConnectTimeout(Int) returns (Void){}
+  rpc getConnectTimeout(Void) returns (Int){}
+  rpc setReadTimeout(Int) returns (Void){}
+  rpc getReadTimeout(Void) returns (Int){}  
+  rpc getContentLength(Void) returns (Int){}
+  rpc getContentLengthLong(Void) returns (Long){}
+  rpc getContentType(Void) returns (StringObject){}
+  rpc getContentEncoding(Void) returns (StringObject){}
+  rpc getExpiration(Void) returns (Long){}
+  rpc getDate(Void) returns (Long){}
+  rpc getLastModified(Void) returns (Long){}
+  rpc getHeaderField(StringObject) returns (StringObject){}  
+  rpc getHeaderFieldInt(FieldInt) returns (Int){}
+  rpc getHeaderFieldLong(FieldLong) returns (Long){}
+  rpc getHeaderFieldDate(FieldLong) returns (Long){}
+  rpc getHeaderFieldKey(Int) returns (StringObject){}
+//  rpc getHeaderField(Int) returns (StringObject){}
+  rpc toStringObject(Void) returns (StringObject){}
+  rpc setDoInput(Boolean) returns (Void){}
+  rpc getDoInput(Void) returns (Boolean){}
+  rpc setDoOutput(Boolean) returns (Void){}
+  rpc getDoOutput(Void) returns (Boolean){}
+  rpc setAllowUserInteraction(Boolean) returns (Void){}
+  rpc getAllowUserInteraction(Void) returns (Boolean){}
+  rpc setDefaultAllowUserInteraction(Boolean)  returns (Void){}
+  rpc getDefaultAllowUserInteraction(Void) returns (Boolean){}
+  rpc setUseCaches(Boolean) returns (Void){}
+  rpc getUseCaches(Void) returns (Boolean){}
+  rpc setIfModifiedSince(Long) returns (Void){}
+  rpc getIfModifiedSince(Void) returns (Long){}
+  rpc getDefaultUseCaches(Void) returns (Boolean){}
+  rpc setDefaultUseCaches(Boolean) returns (Void){}
+  rpc setRequestProperty(KeyValue) returns (Void){}
+  rpc addRequestProperty(KeyValue) returns (Void){}
+  rpc getRequestProperty(StringObject) returns (StringObject){}
+  rpc setDefaultRequestProperty(KeyValue) returns (Void){}
+  rpc getDefaultRequestProperty(StringObject) returns (StringObject){}
+  rpc guessContentTypeFromName(StringObject) returns (StringObject){}
+  
+  rpc InputStreamClose(Void) returns(Void){}
+  rpc InputStreamRead(Void) returns (Int){}
+  rpc InputStreamReadArray(ByteArray) returns (Int){}
+  rpc InputStreamReadArrayOff(ByteArrayOffset) returns (Int) {}
+  rpc InputStreamSkip(Long) returns (Long) {}
+  rpc InputStreamAvailable(Void) returns (Int) {}
+  rpc InputStreamMark(Int) returns (Void) {}
+  rpc InputStreamReset(Void) returns (Void) {}
+  rpc InputStreamMarkSupported(Void) returns (Boolean){}
+  
+  //rpc getInputStream(Void) returns (InputStream) {}
+  //rpc getOutputStream(Void) returns (OutputStream) {}
+  
+  //rpc setContentHandlerFactory(ContentHandlerFactory fac) returns (Void){}
+  //rpc guessContentTypeFromStream(InputStream is) throws IOException  returns (StringObject){}
+  //rpc getRequestProperties(Void) returns (Map<StringObject,List<StringObject>>){}
+  //rpc getURL(Void) returns (URL){}
+  //	  public Object getContent() throws IOException
+  //	  public Object getContent(Class[] classes) throws IOException
+  //	  public Permission getPermission() throws IOException
+  
+  //	  public Map<StringObject,List<StringObject>> getHeaderFields()
+  
+  // A simple RPC.
+  //
+  // Obtains the feature at a given position.
+  //
+  // A feature with an empty name is returned if there's no feature at the given
+  // position.
+  //rpc GetFeature(Point) returns (Feature) {}
+    
+  // A server-to-client streaming RPC.
+  //
+  // Obtains the Features available within the given Rectangle.  Results are
+  // streamed rather than returned at once (e.g. in a response message with a
+  // repeated field), as the rectangle may cover a large area and contain a
+  // huge number of features.
+  //rpc ListFeatures(Rectangle) returns (stream Feature) {}
+
+  // A client-to-server streaming RPC.
+  //
+  // Accepts a stream of Points on a route being traversed, returning a
+  // RouteSummary when traversal is completed.
+  //rpc RecordRoute(stream Point) returns (RouteSummary) {}
+
+  // A Bidirectional streaming RPC.
+  //
+  // Accepts a stream of RouteNotes sent while a route is being traversed,
+  // while receiving other RouteNotes (e.g. from other users).
+  //rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
+}
+
+message ID{
+	int64 conId = 1;
+}
+
+message Int{
+	int64 conId = 1;
+	int32 value = 2;
+}
+
+message Long{
+	int64 conId = 1;
+	int64 value = 2;
+}
+
+message StringObject{
+	int64 conId = 1;
+	string value = 2;
+}
+
+message Boolean{
+	int64 conId = 1;
+	bool value = 2;
+}
+
+message Void{
+	int64 conId = 1;
+}
+
+message ByteArray{
+	int64 conId = 1;
+	bytes array = 2;
+}
+
+message ByteArrayOffset{
+	int64 conId = 1;
+	bytes array = 2;
+	int32 offset = 3;
+	int32 len = 4;
+}
+
+
+message FieldInt{
+	int64 conId = 1;
+	string name = 2;
+	int32 default = 3;
+}
+
+message FieldLong{
+	int64 conId = 1;
+	string name = 2;
+	int64 default = 3;
+}
+
+message KeyValue{
+	int64 conId = 1;
+	string key = 2;
+	string value = 3;
+}
