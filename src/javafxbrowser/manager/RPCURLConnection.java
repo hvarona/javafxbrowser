@@ -7,6 +7,7 @@ package javafxbrowser.manager;
 
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -36,6 +37,7 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
 
     Map<Long, URLConnection> connections = new HashMap();
+    Map<Long, InputStream> streams = new HashMap();
 
     public RPCURLConnection() {
     }
@@ -47,14 +49,13 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         while (connections.containsKey(generatedId)) {
             generatedId = (long) (Math.random() * Long.MAX_VALUE);
         }
-        System.out.println("generateId " + generatedId);
 
         try {
             connections.put(generatedId, new URL(request.getValue()).openConnection());
         } catch (IOException ex) {
-            Logger.getLogger(RPCURLConnection.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
-        responseObserver.onNext(javafxbrowser.rpc.ID.newBuilder().setConId(0).build());
+        responseObserver.onNext(javafxbrowser.rpc.ID.newBuilder().setConId(generatedId).build());
         responseObserver.onCompleted();
 
     }
@@ -301,6 +302,27 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         super.connect(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void getInputStream(Void request, StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
+        long idCon = request.getConId();
+        if (connections.containsKey(idCon)) {
+            Long generatedId = (long) (Math.random() * Long.MAX_VALUE);
+            while (streams.containsKey(generatedId)) {
+                generatedId = (long) (Math.random() * Long.MAX_VALUE);
+            }
+            System.out.println("stream di " + generatedId);
+            try {
+                streams.put(generatedId, connections.get(idCon).getInputStream());
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(idCon).setValue(generatedId).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                Logger.getLogger(RPCURLConnection.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            super.getInputStream(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
+        }
+    }
+
     /*@Override
      public Object getContent(Class[] classes) throws IOException {
      System.out.println("14");
@@ -319,24 +341,19 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamMarkSupported(Void request, StreamObserver<Boolean> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
-            try {
-                responseObserver.onNext(Boolean.newBuilder().setConId(id).setValue(connections.get(id).getInputStream().markSupported()).build());
-                responseObserver.onCompleted();
-            } catch (IOException ex) {
-                //TODO catch error
-                ex.printStackTrace();
-            }
+        if (streams.containsKey(id)) {
+            responseObserver.onNext(Boolean.newBuilder().setConId(id).setValue(streams.get(id).markSupported()).build());
+            responseObserver.onCompleted();
+
         }
-        //super.inputStreamMarkSupported(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void inputStreamReset(Void request, StreamObserver<Void> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                connections.get(id).getInputStream().reset();
+                streams.get(id).reset();
                 responseObserver.onNext(Void.newBuilder().setConId(id).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
@@ -350,15 +367,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamMark(Int request, StreamObserver<Void> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
-            try {
-                connections.get(id).getInputStream().mark(request.getValue());
-                responseObserver.onNext(Void.newBuilder().setConId(id).build());
-                responseObserver.onCompleted();
-            } catch (IOException ex) {
-                //TODO catch error
-                ex.printStackTrace();
-            }
+        if (streams.containsKey(id)) {
+            streams.get(id).mark(request.getValue());
+            responseObserver.onNext(Void.newBuilder().setConId(id).build());
+            responseObserver.onCompleted();
         }
         //super.inputStreamMark(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
@@ -366,9 +378,9 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamAvailable(Void request, StreamObserver<Int> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(connections.get(id).getInputStream().available()).build());
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).available()).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
                 //TODO catch error
@@ -381,9 +393,9 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamSkip(javafxbrowser.rpc.Long request, StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getInputStream().skip(request.getValue())).build());
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(streams.get(id).skip(request.getValue())).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
                 //TODO catch error
@@ -396,9 +408,9 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamReadArrayOff(ByteArrayOffset request, StreamObserver<Int> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(connections.get(id).getInputStream().read(request.getArray().toByteArray(), request.getOffset(), request.getLen())).build());
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).read(request.getArray().toByteArray(), request.getOffset(), request.getLen())).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
                 //TODO catch error
@@ -411,9 +423,9 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamReadArray(ByteArray request, StreamObserver<Int> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(connections.get(id).getInputStream().read(request.getArray().toByteArray())).build());
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).read(request.getArray().toByteArray())).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
                 //TODO catch error
@@ -426,9 +438,9 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void inputStreamRead(Void request, StreamObserver<Int> responseObserver) {
         Long id = request.getConId();
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(connections.get(id).getInputStream().read()).build());
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).read()).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
                 //TODO catch error
@@ -442,9 +454,9 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     public void inputStreamClose(Void request, StreamObserver<Void> responseObserver) {
         Long id = request.getConId();
         System.out.println("InpuStreamClose");
-        if (connections.containsKey(id)) {
+        if (streams.containsKey(id)) {
             try {
-                connections.get(id).getInputStream().close();
+                streams.get(id).close();
 
             } catch (IOException ex) {
                 //TODO catch error
@@ -453,7 +465,7 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             responseObserver.onNext(Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
         } else {
-            System.out.println("Bad ID");
+            System.out.println("Bad ID " + id);
         }
         System.out.println("Stream closed");
         //super.inputStreamClose(request, responseObserver);
