@@ -50,6 +50,7 @@ service URLPetition {
   rpc getDefaultRequestProperty(StringObject) returns (StringObject){}
   rpc guessContentTypeFromName(StringObject) returns (StringObject){}
   
+  rpc getInputStream(Void) returns (Long){}
   rpc InputStreamClose(Void) returns(Void){}
   rpc InputStreamRead(Void) returns (Int){}
   rpc InputStreamReadArray(ByteArray) returns (StreamRead){}
