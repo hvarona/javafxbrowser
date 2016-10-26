@@ -52,8 +52,8 @@ service URLPetition {
   
   rpc InputStreamClose(Void) returns(Void){}
   rpc InputStreamRead(Void) returns (Int){}
-  rpc InputStreamReadArray(ByteArray) returns (Int){}
-  rpc InputStreamReadArrayOff(ByteArrayOffset) returns (Int) {}
+  rpc InputStreamReadArray(ByteArray) returns (StreamRead){}
+  rpc InputStreamReadArrayOff(ByteArrayOffset) returns (StreamRead) {}
   rpc InputStreamSkip(Long) returns (Long) {}
   rpc InputStreamAvailable(Void) returns (Int) {}
   rpc InputStreamMark(Int) returns (Void) {}
@@ -159,4 +159,9 @@ message KeyValue{
 	int64 conId = 1;
 	string key = 2;
 	string value = 3;
+}
+
+message StreamRead{
+	int32 amount = 1;
+	bytes array = 2;
 }
