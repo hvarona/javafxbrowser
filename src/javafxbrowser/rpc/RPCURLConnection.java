@@ -69,6 +69,11 @@ public final class RPCURLConnection {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_rpcurlconn_KeyValue_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_rpcurlconn_StreamRead_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_rpcurlconn_StreamRead_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -91,85 +96,96 @@ public final class RPCURLConnection {
       "lt\030\003 \001(\005\"9\n\tFieldLong\022\r\n\005conId\030\001 \001(\003\022\014\n\004" +
       "name\030\002 \001(\t\022\017\n\007default\030\003 \001(\003\"5\n\010KeyValue\022" +
       "\r\n\005conId\030\001 \001(\003\022\013\n\003key\030\002 \001(\t\022\r\n\005value\030\003 \001" +
-      "(\t2\203\030\n\013URLPetition\0229\n\013constructor\022\030.rpcu" +
-      "rlconn.StringObject\032\016.rpcurlconn.ID\"\000\022/\n" +
-      "\007connect\022\020.rpcurlconn.Void\032\020.rpcurlconn." +
-      "Void\"\000\0228\n\021setConnectTimeout\022\017.rpcurlconn" +
-      ".Int\032\020.rpcurlconn.Void\"\000\0228\n\021getConnectTi" +
-      "meout\022\020.rpcurlconn.Void\032\017.rpcurlconn.Int" +
-      "\"\000\0225\n\016setReadTimeout\022\017.rpcurlconn.Int\032\020.",
-      "rpcurlconn.Void\"\000\0225\n\016getReadTimeout\022\020.rp" +
-      "curlconn.Void\032\017.rpcurlconn.Int\"\000\0227\n\020getC" +
-      "ontentLength\022\020.rpcurlconn.Void\032\017.rpcurlc" +
-      "onn.Int\"\000\022<\n\024getContentLengthLong\022\020.rpcu" +
-      "rlconn.Void\032\020.rpcurlconn.Long\"\000\022>\n\016getCo" +
-      "ntentType\022\020.rpcurlconn.Void\032\030.rpcurlconn" +
-      ".StringObject\"\000\022B\n\022getContentEncoding\022\020." +
+      "(\t\"+\n\nStreamRead\022\016\n\006amount\030\001 \001(\005\022\r\n\005arra" +
+      "y\030\002 \001(\0142\215\033\n\013URLPetition\0229\n\013constructor\022\030" +
+      ".rpcurlconn.StringObject\032\016.rpcurlconn.ID" +
+      "\"\000\022/\n\007connect\022\020.rpcurlconn.Void\032\020.rpcurl" +
+      "conn.Void\"\000\0228\n\021setConnectTimeout\022\017.rpcur" +
+      "lconn.Int\032\020.rpcurlconn.Void\"\000\0228\n\021getConn" +
+      "ectTimeout\022\020.rpcurlconn.Void\032\017.rpcurlcon",
+      "n.Int\"\000\0225\n\016setReadTimeout\022\017.rpcurlconn.I" +
+      "nt\032\020.rpcurlconn.Void\"\000\0225\n\016getReadTimeout" +
+      "\022\020.rpcurlconn.Void\032\017.rpcurlconn.Int\"\000\0227\n" +
+      "\020getContentLength\022\020.rpcurlconn.Void\032\017.rp" +
+      "curlconn.Int\"\000\022<\n\024getContentLengthLong\022\020" +
+      ".rpcurlconn.Void\032\020.rpcurlconn.Long\"\000\022>\n\016" +
+      "getContentType\022\020.rpcurlconn.Void\032\030.rpcur" +
+      "lconn.StringObject\"\000\022B\n\022getContentEncodi" +
+      "ng\022\020.rpcurlconn.Void\032\030.rpcurlconn.String" +
+      "Object\"\000\0225\n\rgetExpiration\022\020.rpcurlconn.V",
+      "oid\032\020.rpcurlconn.Long\"\000\022/\n\007getDate\022\020.rpc" +
+      "urlconn.Void\032\020.rpcurlconn.Long\"\000\0227\n\017getL" +
+      "astModified\022\020.rpcurlconn.Void\032\020.rpcurlco" +
+      "nn.Long\"\000\022F\n\016getHeaderField\022\030.rpcurlconn" +
+      ".StringObject\032\030.rpcurlconn.StringObject\"" +
+      "\000\022<\n\021getHeaderFieldInt\022\024.rpcurlconn.Fiel" +
+      "dInt\032\017.rpcurlconn.Int\"\000\022?\n\022getHeaderFiel" +
+      "dLong\022\025.rpcurlconn.FieldLong\032\020.rpcurlcon" +
+      "n.Long\"\000\022?\n\022getHeaderFieldDate\022\025.rpcurlc" +
+      "onn.FieldLong\032\020.rpcurlconn.Long\"\000\022@\n\021get",
+      "HeaderFieldKey\022\017.rpcurlconn.Int\032\030.rpcurl" +
+      "conn.StringObject\"\000\022>\n\016toStringObject\022\020." +
       "rpcurlconn.Void\032\030.rpcurlconn.StringObjec" +
-      "t\"\000\0225\n\rgetExpiration\022\020.rpcurlconn.Void\032\020" +
-      ".rpcurlconn.Long\"\000\022/\n\007getDate\022\020.rpcurlco",
-      "nn.Void\032\020.rpcurlconn.Long\"\000\0227\n\017getLastMo" +
-      "dified\022\020.rpcurlconn.Void\032\020.rpcurlconn.Lo" +
-      "ng\"\000\022F\n\016getHeaderField\022\030.rpcurlconn.Stri" +
-      "ngObject\032\030.rpcurlconn.StringObject\"\000\022<\n\021" +
-      "getHeaderFieldInt\022\024.rpcurlconn.FieldInt\032" +
-      "\017.rpcurlconn.Int\"\000\022?\n\022getHeaderFieldLong" +
-      "\022\025.rpcurlconn.FieldLong\032\020.rpcurlconn.Lon" +
-      "g\"\000\022?\n\022getHeaderFieldDate\022\025.rpcurlconn.F" +
-      "ieldLong\032\020.rpcurlconn.Long\"\000\022@\n\021getHeade" +
-      "rFieldKey\022\017.rpcurlconn.Int\032\030.rpcurlconn.",
-      "StringObject\"\000\022>\n\016toStringObject\022\020.rpcur" +
-      "lconn.Void\032\030.rpcurlconn.StringObject\"\000\0225" +
-      "\n\nsetDoInput\022\023.rpcurlconn.Boolean\032\020.rpcu" +
-      "rlconn.Void\"\000\0225\n\ngetDoInput\022\020.rpcurlconn" +
-      ".Void\032\023.rpcurlconn.Boolean\"\000\0226\n\013setDoOut" +
-      "put\022\023.rpcurlconn.Boolean\032\020.rpcurlconn.Vo" +
-      "id\"\000\0226\n\013getDoOutput\022\020.rpcurlconn.Void\032\023." +
-      "rpcurlconn.Boolean\"\000\022B\n\027setAllowUserInte" +
-      "raction\022\023.rpcurlconn.Boolean\032\020.rpcurlcon" +
-      "n.Void\"\000\022B\n\027getAllowUserInteraction\022\020.rp",
-      "curlconn.Void\032\023.rpcurlconn.Boolean\"\000\022I\n\036" +
-      "setDefaultAllowUserInteraction\022\023.rpcurlc" +
-      "onn.Boolean\032\020.rpcurlconn.Void\"\000\022I\n\036getDe" +
-      "faultAllowUserInteraction\022\020.rpcurlconn.V" +
-      "oid\032\023.rpcurlconn.Boolean\"\000\0227\n\014setUseCach" +
-      "es\022\023.rpcurlconn.Boolean\032\020.rpcurlconn.Voi" +
-      "d\"\000\0227\n\014getUseCaches\022\020.rpcurlconn.Void\032\023." +
-      "rpcurlconn.Boolean\"\000\022:\n\022setIfModifiedSin" +
-      "ce\022\020.rpcurlconn.Long\032\020.rpcurlconn.Void\"\000" +
-      "\022:\n\022getIfModifiedSince\022\020.rpcurlconn.Void",
-      "\032\020.rpcurlconn.Long\"\000\022>\n\023getDefaultUseCac" +
-      "hes\022\020.rpcurlconn.Void\032\023.rpcurlconn.Boole" +
-      "an\"\000\022>\n\023setDefaultUseCaches\022\023.rpcurlconn" +
-      ".Boolean\032\020.rpcurlconn.Void\"\000\022>\n\022setReque" +
-      "stProperty\022\024.rpcurlconn.KeyValue\032\020.rpcur" +
-      "lconn.Void\"\000\022>\n\022addRequestProperty\022\024.rpc" +
-      "urlconn.KeyValue\032\020.rpcurlconn.Void\"\000\022J\n\022" +
-      "getRequestProperty\022\030.rpcurlconn.StringOb" +
-      "ject\032\030.rpcurlconn.StringObject\"\000\022E\n\031setD" +
-      "efaultRequestProperty\022\024.rpcurlconn.KeyVa",
-      "lue\032\020.rpcurlconn.Void\"\000\022Q\n\031getDefaultReq" +
-      "uestProperty\022\030.rpcurlconn.StringObject\032\030" +
-      ".rpcurlconn.StringObject\"\000\022P\n\030guessConte" +
-      "ntTypeFromName\022\030.rpcurlconn.StringObject" +
-      "\032\030.rpcurlconn.StringObject\"\000\0226\n\016getInput" +
-      "Stream\022\020.rpcurlconn.Void\032\020.rpcurlconn.Lo" +
-      "ng\"\000\0228\n\020InputStreamClose\022\020.rpcurlconn.Vo" +
-      "id\032\020.rpcurlconn.Void\"\000\0226\n\017InputStreamRea" +
-      "d\022\020.rpcurlconn.Void\032\017.rpcurlconn.Int\"\000\022@" +
-      "\n\024InputStreamReadArray\022\025.rpcurlconn.Byte",
-      "Array\032\017.rpcurlconn.Int\"\000\022I\n\027InputStreamR" +
-      "eadArrayOff\022\033.rpcurlconn.ByteArrayOffset" +
-      "\032\017.rpcurlconn.Int\"\000\0227\n\017InputStreamSkip\022\020" +
-      ".rpcurlconn.Long\032\020.rpcurlconn.Long\"\000\022;\n\024" +
-      "InputStreamAvailable\022\020.rpcurlconn.Void\032\017" +
-      ".rpcurlconn.Int\"\000\0226\n\017InputStreamMark\022\017.r" +
-      "pcurlconn.Int\032\020.rpcurlconn.Void\"\000\0228\n\020Inp" +
-      "utStreamReset\022\020.rpcurlconn.Void\032\020.rpcurl" +
-      "conn.Void\"\000\022C\n\030InputStreamMarkSupported\022" +
-      "\020.rpcurlconn.Void\032\023.rpcurlconn.Boolean\"\000",
-      "B-\n\021javafxbrowser.rpcB\020RPCURLConnectionP" +
-      "\001\242\002\003RUCb\006proto3"
+      "t\"\000\0225\n\nsetDoInput\022\023.rpcurlconn.Boolean\032\020" +
+      ".rpcurlconn.Void\"\000\0225\n\ngetDoInput\022\020.rpcur" +
+      "lconn.Void\032\023.rpcurlconn.Boolean\"\000\0226\n\013set" +
+      "DoOutput\022\023.rpcurlconn.Boolean\032\020.rpcurlco" +
+      "nn.Void\"\000\0226\n\013getDoOutput\022\020.rpcurlconn.Vo" +
+      "id\032\023.rpcurlconn.Boolean\"\000\022B\n\027setAllowUse" +
+      "rInteraction\022\023.rpcurlconn.Boolean\032\020.rpcu",
+      "rlconn.Void\"\000\022B\n\027getAllowUserInteraction" +
+      "\022\020.rpcurlconn.Void\032\023.rpcurlconn.Boolean\"" +
+      "\000\022I\n\036setDefaultAllowUserInteraction\022\023.rp" +
+      "curlconn.Boolean\032\020.rpcurlconn.Void\"\000\022I\n\036" +
+      "getDefaultAllowUserInteraction\022\020.rpcurlc" +
+      "onn.Void\032\023.rpcurlconn.Boolean\"\000\0227\n\014setUs" +
+      "eCaches\022\023.rpcurlconn.Boolean\032\020.rpcurlcon" +
+      "n.Void\"\000\0227\n\014getUseCaches\022\020.rpcurlconn.Vo" +
+      "id\032\023.rpcurlconn.Boolean\"\000\022:\n\022setIfModifi" +
+      "edSince\022\020.rpcurlconn.Long\032\020.rpcurlconn.V",
+      "oid\"\000\022:\n\022getIfModifiedSince\022\020.rpcurlconn" +
+      ".Void\032\020.rpcurlconn.Long\"\000\022>\n\023getDefaultU" +
+      "seCaches\022\020.rpcurlconn.Void\032\023.rpcurlconn." +
+      "Boolean\"\000\022>\n\023setDefaultUseCaches\022\023.rpcur" +
+      "lconn.Boolean\032\020.rpcurlconn.Void\"\000\022>\n\022set" +
+      "RequestProperty\022\024.rpcurlconn.KeyValue\032\020." +
+      "rpcurlconn.Void\"\000\022>\n\022addRequestProperty\022" +
+      "\024.rpcurlconn.KeyValue\032\020.rpcurlconn.Void\"" +
+      "\000\022J\n\022getRequestProperty\022\030.rpcurlconn.Str" +
+      "ingObject\032\030.rpcurlconn.StringObject\"\000\022E\n",
+      "\031setDefaultRequestProperty\022\024.rpcurlconn." +
+      "KeyValue\032\020.rpcurlconn.Void\"\000\022Q\n\031getDefau" +
+      "ltRequestProperty\022\030.rpcurlconn.StringObj" +
+      "ect\032\030.rpcurlconn.StringObject\"\000\022P\n\030guess" +
+      "ContentTypeFromName\022\030.rpcurlconn.StringO" +
+      "bject\032\030.rpcurlconn.StringObject\"\000\0226\n\016get" +
+      "InputStream\022\020.rpcurlconn.Void\032\020.rpcurlco" +
+      "nn.Long\"\000\0228\n\020InputStreamClose\022\020.rpcurlco" +
+      "nn.Void\032\020.rpcurlconn.Void\"\000\0226\n\017InputStre" +
+      "amRead\022\020.rpcurlconn.Void\032\017.rpcurlconn.In",
+      "t\"\000\022G\n\024InputStreamReadArray\022\025.rpcurlconn" +
+      ".ByteArray\032\026.rpcurlconn.StreamRead\"\000\022P\n\027" +
+      "InputStreamReadArrayOff\022\033.rpcurlconn.Byt" +
+      "eArrayOffset\032\026.rpcurlconn.StreamRead\"\000\0227" +
+      "\n\017InputStreamSkip\022\020.rpcurlconn.Long\032\020.rp" +
+      "curlconn.Long\"\000\022;\n\024InputStreamAvailable\022" +
+      "\020.rpcurlconn.Void\032\017.rpcurlconn.Int\"\000\0226\n\017" +
+      "InputStreamMark\022\017.rpcurlconn.Int\032\020.rpcur" +
+      "lconn.Void\"\000\0228\n\020InputStreamReset\022\020.rpcur" +
+      "lconn.Void\032\020.rpcurlconn.Void\"\000\022C\n\030InputS",
+      "treamMarkSupported\022\020.rpcurlconn.Void\032\023.r" +
+      "pcurlconn.Boolean\"\000\0227\n\017getOutputStream\022\020" +
+      ".rpcurlconn.Void\032\020.rpcurlconn.Long\"\000\0228\n\021" +
+      "OutputStreamWrite\022\017.rpcurlconn.Int\032\020.rpc" +
+      "urlconn.Void\"\000\0229\n\021OutputStreamClose\022\020.rp" +
+      "curlconn.Void\032\020.rpcurlconn.Void\"\000\0229\n\021Out" +
+      "putStreamFlush\022\020.rpcurlconn.Void\032\020.rpcur" +
+      "lconn.Void\"\000\022L\n\031OutputStreamWriteArrayOf" +
+      "f\022\033.rpcurlconn.ByteArrayOffset\032\020.rpcurlc" +
+      "onn.Void\"\000\022C\n\026OutputStreamWriteArray\022\025.r",
+      "pcurlconn.ByteArray\032\020.rpcurlconn.Void\"\000B" +
+      "-\n\021javafxbrowser.rpcB\020RPCURLConnectionP\001" +
+      "\242\002\003RUCb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -249,6 +265,12 @@ public final class RPCURLConnection {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_rpcurlconn_KeyValue_descriptor,
         new java.lang.String[] { "ConId", "Key", "Value", });
+    internal_static_rpcurlconn_StreamRead_descriptor =
+      getDescriptor().getMessageTypes().get(11);
+    internal_static_rpcurlconn_StreamRead_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_rpcurlconn_StreamRead_descriptor,
+        new java.lang.String[] { "Amount", "Array", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

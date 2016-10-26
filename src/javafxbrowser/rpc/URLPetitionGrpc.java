@@ -410,22 +410,22 @@ public class URLPetitionGrpc {
           io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Int.getDefaultInstance()));
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.ByteArray,
-      javafxbrowser.rpc.Int> METHOD_INPUT_STREAM_READ_ARRAY =
+      javafxbrowser.rpc.StreamRead> METHOD_INPUT_STREAM_READ_ARRAY =
       io.grpc.MethodDescriptor.create(
           io.grpc.MethodDescriptor.MethodType.UNARY,
           generateFullMethodName(
               "rpcurlconn.URLPetition", "InputStreamReadArray"),
           io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.ByteArray.getDefaultInstance()),
-          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Int.getDefaultInstance()));
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.StreamRead.getDefaultInstance()));
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.ByteArrayOffset,
-      javafxbrowser.rpc.Int> METHOD_INPUT_STREAM_READ_ARRAY_OFF =
+      javafxbrowser.rpc.StreamRead> METHOD_INPUT_STREAM_READ_ARRAY_OFF =
       io.grpc.MethodDescriptor.create(
           io.grpc.MethodDescriptor.MethodType.UNARY,
           generateFullMethodName(
               "rpcurlconn.URLPetition", "InputStreamReadArrayOff"),
           io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.ByteArrayOffset.getDefaultInstance()),
-          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Int.getDefaultInstance()));
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.StreamRead.getDefaultInstance()));
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Long,
       javafxbrowser.rpc.Long> METHOD_INPUT_STREAM_SKIP =
@@ -471,6 +471,60 @@ public class URLPetitionGrpc {
               "rpcurlconn.URLPetition", "InputStreamMarkSupported"),
           io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()),
           io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Boolean.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Void,
+      javafxbrowser.rpc.Long> METHOD_GET_OUTPUT_STREAM =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "getOutputStream"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Long.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Int,
+      javafxbrowser.rpc.Void> METHOD_OUTPUT_STREAM_WRITE =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "OutputStreamWrite"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Int.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Void,
+      javafxbrowser.rpc.Void> METHOD_OUTPUT_STREAM_CLOSE =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "OutputStreamClose"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.Void,
+      javafxbrowser.rpc.Void> METHOD_OUTPUT_STREAM_FLUSH =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "OutputStreamFlush"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.ByteArrayOffset,
+      javafxbrowser.rpc.Void> METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "OutputStreamWriteArrayOff"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.ByteArrayOffset.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()));
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<javafxbrowser.rpc.ByteArray,
+      javafxbrowser.rpc.Void> METHOD_OUTPUT_STREAM_WRITE_ARRAY =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "rpcurlconn.URLPetition", "OutputStreamWriteArray"),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.ByteArray.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(javafxbrowser.rpc.Void.getDefaultInstance()));
 
   /**
    * Creates a new async stub that supports all call types for the service
@@ -802,14 +856,14 @@ public class URLPetitionGrpc {
     /**
      */
     public void inputStreamReadArray(javafxbrowser.rpc.ByteArray request,
-        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Int> responseObserver) {
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.StreamRead> responseObserver) {
       asyncUnimplementedUnaryCall(METHOD_INPUT_STREAM_READ_ARRAY, responseObserver);
     }
 
     /**
      */
     public void inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset request,
-        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Int> responseObserver) {
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.StreamRead> responseObserver) {
       asyncUnimplementedUnaryCall(METHOD_INPUT_STREAM_READ_ARRAY_OFF, responseObserver);
     }
 
@@ -846,6 +900,48 @@ public class URLPetitionGrpc {
     public void inputStreamMarkSupported(javafxbrowser.rpc.Void request,
         io.grpc.stub.StreamObserver<javafxbrowser.rpc.Boolean> responseObserver) {
       asyncUnimplementedUnaryCall(METHOD_INPUT_STREAM_MARK_SUPPORTED, responseObserver);
+    }
+
+    /**
+     */
+    public void getOutputStream(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_GET_OUTPUT_STREAM, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamWrite(javafxbrowser.rpc.Int request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_OUTPUT_STREAM_WRITE, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamClose(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_OUTPUT_STREAM_CLOSE, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamFlush(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_OUTPUT_STREAM_FLUSH, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamWriteArrayOff(javafxbrowser.rpc.ByteArrayOffset request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamWriteArray(javafxbrowser.rpc.ByteArray request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_OUTPUT_STREAM_WRITE_ARRAY, responseObserver);
     }
 
     @java.lang.Override public io.grpc.ServerServiceDefinition bindService() {
@@ -1149,14 +1245,14 @@ public class URLPetitionGrpc {
             asyncUnaryCall(
               new MethodHandlers<
                 javafxbrowser.rpc.ByteArray,
-                javafxbrowser.rpc.Int>(
+                javafxbrowser.rpc.StreamRead>(
                   this, METHODID_INPUT_STREAM_READ_ARRAY)))
           .addMethod(
             METHOD_INPUT_STREAM_READ_ARRAY_OFF,
             asyncUnaryCall(
               new MethodHandlers<
                 javafxbrowser.rpc.ByteArrayOffset,
-                javafxbrowser.rpc.Int>(
+                javafxbrowser.rpc.StreamRead>(
                   this, METHODID_INPUT_STREAM_READ_ARRAY_OFF)))
           .addMethod(
             METHOD_INPUT_STREAM_SKIP,
@@ -1193,6 +1289,48 @@ public class URLPetitionGrpc {
                 javafxbrowser.rpc.Void,
                 javafxbrowser.rpc.Boolean>(
                   this, METHODID_INPUT_STREAM_MARK_SUPPORTED)))
+          .addMethod(
+            METHOD_GET_OUTPUT_STREAM,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.Void,
+                javafxbrowser.rpc.Long>(
+                  this, METHODID_GET_OUTPUT_STREAM)))
+          .addMethod(
+            METHOD_OUTPUT_STREAM_WRITE,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.Int,
+                javafxbrowser.rpc.Void>(
+                  this, METHODID_OUTPUT_STREAM_WRITE)))
+          .addMethod(
+            METHOD_OUTPUT_STREAM_CLOSE,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.Void,
+                javafxbrowser.rpc.Void>(
+                  this, METHODID_OUTPUT_STREAM_CLOSE)))
+          .addMethod(
+            METHOD_OUTPUT_STREAM_FLUSH,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.Void,
+                javafxbrowser.rpc.Void>(
+                  this, METHODID_OUTPUT_STREAM_FLUSH)))
+          .addMethod(
+            METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.ByteArrayOffset,
+                javafxbrowser.rpc.Void>(
+                  this, METHODID_OUTPUT_STREAM_WRITE_ARRAY_OFF)))
+          .addMethod(
+            METHOD_OUTPUT_STREAM_WRITE_ARRAY,
+            asyncUnaryCall(
+              new MethodHandlers<
+                javafxbrowser.rpc.ByteArray,
+                javafxbrowser.rpc.Void>(
+                  this, METHODID_OUTPUT_STREAM_WRITE_ARRAY)))
           .build();
     }
   }
@@ -1560,7 +1698,7 @@ public class URLPetitionGrpc {
     /**
      */
     public void inputStreamReadArray(javafxbrowser.rpc.ByteArray request,
-        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Int> responseObserver) {
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.StreamRead> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(METHOD_INPUT_STREAM_READ_ARRAY, getCallOptions()), request, responseObserver);
     }
@@ -1568,7 +1706,7 @@ public class URLPetitionGrpc {
     /**
      */
     public void inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset request,
-        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Int> responseObserver) {
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.StreamRead> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(METHOD_INPUT_STREAM_READ_ARRAY_OFF, getCallOptions()), request, responseObserver);
     }
@@ -1611,6 +1749,54 @@ public class URLPetitionGrpc {
         io.grpc.stub.StreamObserver<javafxbrowser.rpc.Boolean> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(METHOD_INPUT_STREAM_MARK_SUPPORTED, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void getOutputStream(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_GET_OUTPUT_STREAM, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamWrite(javafxbrowser.rpc.Int request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_WRITE, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamClose(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_CLOSE, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamFlush(javafxbrowser.rpc.Void request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_FLUSH, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamWriteArrayOff(javafxbrowser.rpc.ByteArrayOffset request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF, getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void outputStreamWriteArray(javafxbrowser.rpc.ByteArray request,
+        io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_WRITE_ARRAY, getCallOptions()), request, responseObserver);
     }
   }
 
@@ -1934,14 +2120,14 @@ public class URLPetitionGrpc {
 
     /**
      */
-    public javafxbrowser.rpc.Int inputStreamReadArray(javafxbrowser.rpc.ByteArray request) {
+    public javafxbrowser.rpc.StreamRead inputStreamReadArray(javafxbrowser.rpc.ByteArray request) {
       return blockingUnaryCall(
           getChannel(), METHOD_INPUT_STREAM_READ_ARRAY, getCallOptions(), request);
     }
 
     /**
      */
-    public javafxbrowser.rpc.Int inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset request) {
+    public javafxbrowser.rpc.StreamRead inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset request) {
       return blockingUnaryCall(
           getChannel(), METHOD_INPUT_STREAM_READ_ARRAY_OFF, getCallOptions(), request);
     }
@@ -1979,6 +2165,48 @@ public class URLPetitionGrpc {
     public javafxbrowser.rpc.Boolean inputStreamMarkSupported(javafxbrowser.rpc.Void request) {
       return blockingUnaryCall(
           getChannel(), METHOD_INPUT_STREAM_MARK_SUPPORTED, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Long getOutputStream(javafxbrowser.rpc.Void request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_GET_OUTPUT_STREAM, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Void outputStreamWrite(javafxbrowser.rpc.Int request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_OUTPUT_STREAM_WRITE, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Void outputStreamClose(javafxbrowser.rpc.Void request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_OUTPUT_STREAM_CLOSE, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Void outputStreamFlush(javafxbrowser.rpc.Void request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_OUTPUT_STREAM_FLUSH, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Void outputStreamWriteArrayOff(javafxbrowser.rpc.ByteArrayOffset request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF, getCallOptions(), request);
+    }
+
+    /**
+     */
+    public javafxbrowser.rpc.Void outputStreamWriteArray(javafxbrowser.rpc.ByteArray request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_OUTPUT_STREAM_WRITE_ARRAY, getCallOptions(), request);
     }
   }
 
@@ -2344,7 +2572,7 @@ public class URLPetitionGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Int> inputStreamReadArray(
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.StreamRead> inputStreamReadArray(
         javafxbrowser.rpc.ByteArray request) {
       return futureUnaryCall(
           getChannel().newCall(METHOD_INPUT_STREAM_READ_ARRAY, getCallOptions()), request);
@@ -2352,7 +2580,7 @@ public class URLPetitionGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Int> inputStreamReadArrayOff(
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.StreamRead> inputStreamReadArrayOff(
         javafxbrowser.rpc.ByteArrayOffset request) {
       return futureUnaryCall(
           getChannel().newCall(METHOD_INPUT_STREAM_READ_ARRAY_OFF, getCallOptions()), request);
@@ -2396,6 +2624,54 @@ public class URLPetitionGrpc {
         javafxbrowser.rpc.Void request) {
       return futureUnaryCall(
           getChannel().newCall(METHOD_INPUT_STREAM_MARK_SUPPORTED, getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Long> getOutputStream(
+        javafxbrowser.rpc.Void request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_GET_OUTPUT_STREAM, getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Void> outputStreamWrite(
+        javafxbrowser.rpc.Int request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_WRITE, getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Void> outputStreamClose(
+        javafxbrowser.rpc.Void request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_CLOSE, getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Void> outputStreamFlush(
+        javafxbrowser.rpc.Void request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_FLUSH, getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Void> outputStreamWriteArrayOff(
+        javafxbrowser.rpc.ByteArrayOffset request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF, getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<javafxbrowser.rpc.Void> outputStreamWriteArray(
+        javafxbrowser.rpc.ByteArray request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_OUTPUT_STREAM_WRITE_ARRAY, getCallOptions()), request);
     }
   }
 
@@ -2448,6 +2724,12 @@ public class URLPetitionGrpc {
   private static final int METHODID_INPUT_STREAM_MARK = 46;
   private static final int METHODID_INPUT_STREAM_RESET = 47;
   private static final int METHODID_INPUT_STREAM_MARK_SUPPORTED = 48;
+  private static final int METHODID_GET_OUTPUT_STREAM = 49;
+  private static final int METHODID_OUTPUT_STREAM_WRITE = 50;
+  private static final int METHODID_OUTPUT_STREAM_CLOSE = 51;
+  private static final int METHODID_OUTPUT_STREAM_FLUSH = 52;
+  private static final int METHODID_OUTPUT_STREAM_WRITE_ARRAY_OFF = 53;
+  private static final int METHODID_OUTPUT_STREAM_WRITE_ARRAY = 54;
 
   private static class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -2636,11 +2918,11 @@ public class URLPetitionGrpc {
           break;
         case METHODID_INPUT_STREAM_READ_ARRAY:
           serviceImpl.inputStreamReadArray((javafxbrowser.rpc.ByteArray) request,
-              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Int>) responseObserver);
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.StreamRead>) responseObserver);
           break;
         case METHODID_INPUT_STREAM_READ_ARRAY_OFF:
           serviceImpl.inputStreamReadArrayOff((javafxbrowser.rpc.ByteArrayOffset) request,
-              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Int>) responseObserver);
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.StreamRead>) responseObserver);
           break;
         case METHODID_INPUT_STREAM_SKIP:
           serviceImpl.inputStreamSkip((javafxbrowser.rpc.Long) request,
@@ -2661,6 +2943,30 @@ public class URLPetitionGrpc {
         case METHODID_INPUT_STREAM_MARK_SUPPORTED:
           serviceImpl.inputStreamMarkSupported((javafxbrowser.rpc.Void) request,
               (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Boolean>) responseObserver);
+          break;
+        case METHODID_GET_OUTPUT_STREAM:
+          serviceImpl.getOutputStream((javafxbrowser.rpc.Void) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Long>) responseObserver);
+          break;
+        case METHODID_OUTPUT_STREAM_WRITE:
+          serviceImpl.outputStreamWrite((javafxbrowser.rpc.Int) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void>) responseObserver);
+          break;
+        case METHODID_OUTPUT_STREAM_CLOSE:
+          serviceImpl.outputStreamClose((javafxbrowser.rpc.Void) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void>) responseObserver);
+          break;
+        case METHODID_OUTPUT_STREAM_FLUSH:
+          serviceImpl.outputStreamFlush((javafxbrowser.rpc.Void) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void>) responseObserver);
+          break;
+        case METHODID_OUTPUT_STREAM_WRITE_ARRAY_OFF:
+          serviceImpl.outputStreamWriteArrayOff((javafxbrowser.rpc.ByteArrayOffset) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void>) responseObserver);
+          break;
+        case METHODID_OUTPUT_STREAM_WRITE_ARRAY:
+          serviceImpl.outputStreamWriteArray((javafxbrowser.rpc.ByteArray) request,
+              (io.grpc.stub.StreamObserver<javafxbrowser.rpc.Void>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -2728,7 +3034,13 @@ public class URLPetitionGrpc {
         METHOD_INPUT_STREAM_AVAILABLE,
         METHOD_INPUT_STREAM_MARK,
         METHOD_INPUT_STREAM_RESET,
-        METHOD_INPUT_STREAM_MARK_SUPPORTED);
+        METHOD_INPUT_STREAM_MARK_SUPPORTED,
+        METHOD_GET_OUTPUT_STREAM,
+        METHOD_OUTPUT_STREAM_WRITE,
+        METHOD_OUTPUT_STREAM_CLOSE,
+        METHOD_OUTPUT_STREAM_FLUSH,
+        METHOD_OUTPUT_STREAM_WRITE_ARRAY_OFF,
+        METHOD_OUTPUT_STREAM_WRITE_ARRAY);
   }
 
 }

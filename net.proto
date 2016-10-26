@@ -61,7 +61,13 @@ service URLPetition {
   rpc InputStreamReset(Void) returns (Void) {}
   rpc InputStreamMarkSupported(Void) returns (Boolean){}
   
-  //rpc getInputStream(Void) returns (InputStream) {}
+  rpc getOutputStream(Void) returns (Long){}
+  rpc OutputStreamWrite(Int) returns (Void) {}
+  rpc OutputStreamClose(Void) returns (Void) {}
+  rpc OutputStreamFlush(Void) returns (Void) {}
+  rpc OutputStreamWriteArrayOff(ByteArrayOffset) returns (Void) {}
+  rpc OutputStreamWriteArray(ByteArray) returns (Void) {}
+  
   //rpc getOutputStream(Void) returns (OutputStream) {}
   
   //rpc setContentHandlerFactory(ContentHandlerFactory fac) returns (Void){}

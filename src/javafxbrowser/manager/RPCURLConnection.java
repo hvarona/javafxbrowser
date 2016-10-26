@@ -1,18 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package javafxbrowser.manager;
 
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
+import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLStreamHandler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -24,8 +19,8 @@ import javafxbrowser.rpc.FieldInt;
 import javafxbrowser.rpc.FieldLong;
 import javafxbrowser.rpc.ID;
 import javafxbrowser.rpc.Int;
+import javafxbrowser.rpc.StreamRead;
 import javafxbrowser.rpc.StringObject;
-import sun.net.www.protocol.http.Handler;
 import javafxbrowser.rpc.URLPetitionGrpc;
 import javafxbrowser.rpc.Void;
 import sun.net.www.protocol.http.HttpURLConnection;
@@ -37,7 +32,8 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
 
     Map<Long, URLConnection> connections = new HashMap();
-    Map<Long, InputStream> streams = new HashMap();
+    Map<Long, InputStream> inputStreams = new HashMap();
+    Map<Long, OutputStream> outputStreams = new HashMap();
 
     public RPCURLConnection() {
     }
@@ -45,15 +41,17 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
     @Override
     public void constructor(StringObject request, StreamObserver<ID> responseObserver) {
 
-        Long generatedId = (long) (Math.random() * Long.MAX_VALUE);
+        long generatedId = (long) (Math.random() * Long.MAX_VALUE);
         while (connections.containsKey(generatedId)) {
             generatedId = (long) (Math.random() * Long.MAX_VALUE);
         }
 
         try {
-            connections.put(generatedId, new URL(request.getValue()).openConnection());
+            //connections.put(generatedId, new URL(request.getValue()).openConnection());
+            connections.put(generatedId, new HttpURLConnection(new URL(request.getValue()), Proxy.NO_PROXY));
         } catch (IOException ex) {
             ex.printStackTrace();
+            generatedId = -1;
         }
         responseObserver.onNext(javafxbrowser.rpc.ID.newBuilder().setConId(generatedId).build());
         responseObserver.onCompleted();
@@ -67,8 +65,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             connections.get(id).setDefaultUseCaches(request.getValue());
             responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.setDefaultUseCaches(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -77,8 +77,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(id).setValue(connections.get(id).getDefaultUseCaches()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getDefaultUseCaches(request, responseObserver);
     }
 
     @Override
@@ -87,8 +89,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getIfModifiedSince()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getIfModifiedSince(request, responseObserver);
     }
 
     @Override
@@ -98,8 +102,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             connections.get(id).setIfModifiedSince(request.getValue());
             responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.setIfModifiedSince(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -108,8 +114,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(id).setValue(connections.get(id).getUseCaches()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getUseCaches(request, responseObserver);
     }
 
     @Override
@@ -119,8 +127,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             connections.get(id).setUseCaches(request.getValue());
             responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.setUseCaches(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -129,8 +139,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(id).setValue(connections.get(id).getAllowUserInteraction()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getAllowUserInteraction(request, responseObserver);
     }
 
     @Override
@@ -140,8 +152,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             connections.get(id).setAllowUserInteraction(request.getValue());
             responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.setAllowUserInteraction(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -150,8 +164,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(id).setValue(connections.get(id).getDoOutput()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getDoOutput(request, responseObserver);
     }
 
     @Override
@@ -161,8 +177,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             connections.get(id).setDoOutput(request.getValue());
             responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.setDoOutput(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -171,8 +189,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(id).setValue(connections.get(id).getDoInput()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getDoInput(request, responseObserver);
     }
 
     @Override
@@ -182,8 +202,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             connections.get(id).setDoInput(request.getValue());
             responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.setDoInput(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -192,8 +214,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue(connections.get(id).toString()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.toStringObject(request, responseObserver);
     }
 
     @Override
@@ -202,8 +226,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getHeaderFieldLong(request.getName(), request.getDefault())).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getHeaderFieldLong(request, responseObserver);
     }
 
     @Override
@@ -212,8 +238,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Int.newBuilder().setConId(id).setValue(connections.get(id).getHeaderFieldInt(request.getName(), request.getDefault())).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Int.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getHeaderFieldInt(request, responseObserver);
     }
 
     @Override
@@ -222,8 +250,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getLastModified()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getLastModified(request, responseObserver);
     }
 
     @Override
@@ -232,8 +262,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getDate()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getDate(request, responseObserver);
     }
 
     @Override
@@ -242,28 +274,44 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getExpiration()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getExpiration(request, responseObserver);
     }
 
     @Override
     public void getContentEncoding(Void request, StreamObserver<StringObject> responseObserver) {
         Long id = request.getConId();
         if (connections.containsKey(id)) {
-            responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue(connections.get(id).getContentEncoding()).build());
+            String answer = connections.get(id).getContentEncoding();
+            if (answer != null) {
+                responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue(answer).build());
+            } else {
+                responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue("NulV").build());
+            }
+            responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(-1).build());
             responseObserver.onCompleted();
         }
-        super.getContentEncoding(request, responseObserver);
     }
 
     @Override
     public void getContentType(Void request, StreamObserver<StringObject> responseObserver) {
         Long id = request.getConId();
         if (connections.containsKey(id)) {
-            responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue(connections.get(id).getContentType()).build());
+            String answer = connections.get(id).getContentType();
+            if (answer != null) {
+                responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue(answer).build());
+            } else {
+                responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(id).setValue("NulV").build());
+            }
+            responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.StringObject.newBuilder().setConId(-1).build());
             responseObserver.onCompleted();
         }
-        super.getContentType(request, responseObserver);
     }
 
     @Override
@@ -272,8 +320,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(connections.get(id).getContentLengthLong()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getContentLengthLong(request, responseObserver);
     }
 
     @Override
@@ -282,8 +332,10 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         if (connections.containsKey(id)) {
             responseObserver.onNext(javafxbrowser.rpc.Int.newBuilder().setConId(id).setValue(connections.get(id).getContentLength()).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Int.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.getContentLength(request, responseObserver);
     }
 
     @Override
@@ -297,9 +349,13 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 //TODO handle exceptions
+                responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        super.connect(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -307,19 +363,43 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
         long idCon = request.getConId();
         if (connections.containsKey(idCon)) {
             Long generatedId = (long) (Math.random() * Long.MAX_VALUE);
-            while (streams.containsKey(generatedId)) {
+            while (inputStreams.containsKey(generatedId)) {
                 generatedId = (long) (Math.random() * Long.MAX_VALUE);
             }
-            System.out.println("stream di " + generatedId);
             try {
-                streams.put(generatedId, connections.get(idCon).getInputStream());
+                inputStreams.put(generatedId, connections.get(idCon).getInputStream());
                 responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(idCon).setValue(generatedId).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                Logger.getLogger(RPCURLConnection.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
             }
         } else {
-            super.getInputStream(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    public void getOutputStream(Void request, StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
+        long idCon = request.getConId();
+        if (connections.containsKey(idCon)) {
+            Long generatedId = (long) (Math.random() * Long.MAX_VALUE);
+            while (outputStreams.containsKey(generatedId)) {
+                generatedId = (long) (Math.random() * Long.MAX_VALUE);
+            }
+            try {
+                outputStreams.put(generatedId, connections.get(idCon).getOutputStream());
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(idCon).setValue(generatedId).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
+            }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
     }
 
@@ -328,146 +408,271 @@ public class RPCURLConnection extends URLPetitionGrpc.URLPetitionImplBase {
      System.out.println("14");
      return super.getContent(classes); //To change body of generated methods, choose Tools | Templates.
      }*/
-    /*@Override
+ /*@Override
      public Object getContent() throws IOException {
      System.out.println("15");
      return super.getContent(); //To change body of generated methods, choose Tools | Templates.
      }*/
-    /*@Override
+ /*@Override
      public URL getURL() {
      System.out.println("25");
      return super.getURL(); //To change body of generated methods, choose Tools | Templates.
      }*/
+    // InputStream Part
     @Override
     public void inputStreamMarkSupported(Void request, StreamObserver<Boolean> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
-            responseObserver.onNext(Boolean.newBuilder().setConId(id).setValue(streams.get(id).markSupported()).build());
+        if (inputStreams.containsKey(id)) {
+            responseObserver.onNext(Boolean.newBuilder().setConId(id).setValue(inputStreams.get(id).markSupported()).build());
             responseObserver.onCompleted();
 
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Boolean.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
     }
 
     @Override
     public void inputStreamReset(Void request, StreamObserver<Void> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                streams.get(id).reset();
+                inputStreams.get(id).reset();
                 responseObserver.onNext(Void.newBuilder().setConId(id).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamReset(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
+
     }
 
     @Override
     public void inputStreamMark(Int request, StreamObserver<Void> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
-            streams.get(id).mark(request.getValue());
+        if (inputStreams.containsKey(id)) {
+            inputStreams.get(id).mark(request.getValue());
             responseObserver.onNext(Void.newBuilder().setConId(id).build());
             responseObserver.onCompleted();
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamMark(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void inputStreamAvailable(Void request, StreamObserver<Int> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).available()).build());
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(inputStreams.get(id).available()).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(javafxbrowser.rpc.Int.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Int.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamAvailable(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void inputStreamSkip(javafxbrowser.rpc.Long request, StreamObserver<javafxbrowser.rpc.Long> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(streams.get(id).skip(request.getValue())).build());
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(id).setValue(inputStreams.get(id).skip(request.getValue())).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Long.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamSkip(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void inputStreamReadArrayOff(ByteArrayOffset request, StreamObserver<Int> responseObserver) {
+    public void inputStreamReadArrayOff(ByteArrayOffset request, StreamObserver<StreamRead> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).read(request.getArray().toByteArray(), request.getOffset(), request.getLen())).build());
+                byte[] array = request.getArray().toByteArray();
+                int answer = inputStreams.get(id).read(array, request.getOffset(), request.getLen());
+                responseObserver.onNext(StreamRead.newBuilder().setArray(ByteString.copyFrom(array)).setAmount(answer).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(javafxbrowser.rpc.StreamRead.newBuilder().setAmount(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.StreamRead.newBuilder().setAmount(-3).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamReadArrayOff(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void inputStreamReadArray(ByteArray request, StreamObserver<Int> responseObserver) {
+    public void inputStreamReadArray(ByteArray request, StreamObserver<StreamRead> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).read(request.getArray().toByteArray())).build());
+                byte[] array = request.getArray().toByteArray();
+                int answer = inputStreams.get(id).read(array);
+                responseObserver.onNext(StreamRead.newBuilder().setArray(ByteString.copyFrom(array)).setAmount(answer).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(StreamRead.newBuilder().setAmount(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.StreamRead.newBuilder().setAmount(-3).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamReadArray(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void inputStreamRead(Void request, StreamObserver<Int> responseObserver) {
         Long id = request.getConId();
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(streams.get(id).read()).build());
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(inputStreams.get(id).read()).build());
                 responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(Int.newBuilder().setConId(id).setValue(-2).build());
+                responseObserver.onCompleted();
             }
+        } else {
+            responseObserver.onNext(Int.newBuilder().setConId(id).setValue(-1).build());
+            responseObserver.onCompleted();
         }
-        //super.inputStreamRead(request, responseObserver); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void inputStreamClose(Void request, StreamObserver<Void> responseObserver) {
         Long id = request.getConId();
-        System.out.println("InpuStreamClose");
-        if (streams.containsKey(id)) {
+        if (inputStreams.containsKey(id)) {
             try {
-                streams.get(id).close();
-
+                inputStreams.get(id).close();
+                responseObserver.onNext(Void.newBuilder().setConId(id).build());
+                responseObserver.onCompleted();
             } catch (IOException ex) {
-                //TODO catch error
                 ex.printStackTrace();
+                responseObserver.onNext(Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
             }
-            responseObserver.onNext(Void.newBuilder().setConId(id).build());
-            responseObserver.onCompleted();
+
+            inputStreams.remove(id);
         } else {
-            System.out.println("Bad ID " + id);
+            responseObserver.onNext(Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
         }
-        System.out.println("Stream closed");
-        //super.inputStreamClose(request, responseObserver);
     }
+
+    //OutputStreamPart
+    @Override
+    public void outputStreamWriteArray(ByteArray request, StreamObserver<Void> responseObserver) {
+        Long id = request.getConId();
+        if (outputStreams.containsKey(id)) {
+            try {
+                outputStreams.get(id).write(request.getArray().toByteArray());
+                responseObserver.onNext(Void.newBuilder().setConId(id).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
+            }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void outputStreamWriteArrayOff(ByteArrayOffset request, StreamObserver<Void> responseObserver) {
+        Long id = request.getConId();
+        if (outputStreams.containsKey(id)) {
+            try {
+                outputStreams.get(id).write(request.getArray().toByteArray(),request.getOffset(),request.getLen());
+                responseObserver.onNext(Void.newBuilder().setConId(id).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
+            }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
+        }
+
+    }
+
+    @Override
+    public void outputStreamFlush(Void request, StreamObserver<Void> responseObserver) {
+        Long id = request.getConId();
+        if (outputStreams.containsKey(id)) {
+            try {
+                outputStreams.get(id).flush();
+                responseObserver.onNext(Void.newBuilder().setConId(id).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
+            }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void outputStreamWrite(Int request, StreamObserver<Void> responseObserver) {
+        Long id = request.getConId();
+        if (outputStreams.containsKey(id)) {
+            try {
+                outputStreams.get(id).write(request.getValue());
+                responseObserver.onNext(Void.newBuilder().setConId(id).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
+            }
+        } else {
+            responseObserver.onNext(javafxbrowser.rpc.Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void outputStreamClose(Void request, StreamObserver<Void> responseObserver) {
+        Long id = request.getConId();
+        if (outputStreams.containsKey(id)) {
+            try {
+                outputStreams.get(id).close();
+                responseObserver.onNext(Void.newBuilder().setConId(id).build());
+                responseObserver.onCompleted();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                responseObserver.onNext(Void.newBuilder().setConId(-2).build());
+                responseObserver.onCompleted();
+            }
+
+            outputStreams.remove(id);
+        } else {
+            responseObserver.onNext(Void.newBuilder().setConId(-1).build());
+            responseObserver.onCompleted();
+        }
+    }
+
 }

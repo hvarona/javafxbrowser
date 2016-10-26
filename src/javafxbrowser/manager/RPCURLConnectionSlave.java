@@ -7,35 +7,31 @@ import io.grpc.netty.NettyChannelBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import javafxbrowser.JavaFxBrowserBase;
-import javafxbrowser.rpc.ServerPetitionGrpc;
 import javafxbrowser.rpc.StringObject;
+import javafxbrowser.rpc.StreamRead;
 import javafxbrowser.rpc.URLPetitionGrpc;
-import sun.net.www.protocol.http.HttpURLConnection;
 
 /**
  *
  * @author hvarona
  */
-public class RPCURLConnectionSlave extends HttpURLConnection {
+public class RPCURLConnectionSlave extends URLConnection {
 
-    private ManagedChannel channel;
-    private URLPetitionGrpc.URLPetitionBlockingStub blockingStub;
-    private long idCon;
-    private RPCSlaveInputStream inputStream;
+    private final ManagedChannel channel;
+    private final URLPetitionGrpc.URLPetitionBlockingStub blockingStub;
+    private final long idCon;
 
     public RPCURLConnectionSlave(URL url) {
-        super(url, Proxy.NO_PROXY);
+        super(url);
         channel = NettyChannelBuilder.forAddress("localhost", JavaFxBrowserBase.port)
                 .nameResolverFactory(new DnsNameResolverProvider())
                 .usePlaintext(true).build();
         blockingStub = URLPetitionGrpc.newBlockingStub(channel);
         System.out.println(url.toString());
         idCon = blockingStub.constructor(StringObject.newBuilder().setValue(url.toString()).build()).getConId();
-        System.out.println("idCon " + idCon);
     }
 
     @Override
@@ -130,12 +126,20 @@ public class RPCURLConnectionSlave extends HttpURLConnection {
 
     @Override
     public String getContentEncoding() {
-        return blockingStub.getContentEncoding(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue();
+        String answer = blockingStub.getContentEncoding(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue();
+        if (answer.equals("NulV")) {
+            return null;
+        }
+        return answer;
     }
 
     @Override
     public String getContentType() {
-        return blockingStub.getContentType(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue();
+        String answer = blockingStub.getContentType(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue();
+        if (answer.equals("NulV")) {
+            return null;
+        }
+        return answer;
     }
 
     @Override
@@ -150,7 +154,6 @@ public class RPCURLConnectionSlave extends HttpURLConnection {
 
     @Override
     public void connect() throws IOException {
-        super.connect();
         blockingStub.connect(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build());
     }
 
@@ -158,36 +161,44 @@ public class RPCURLConnectionSlave extends HttpURLConnection {
     @Override
     public URL getURL() {
         System.out.println("25");
-        return super.getURL(); //To change body of generated methods, choose Tools | Templates.
+        return super.getURL();
     }
 
+    //Not implemented yet
     @Override
     public Object getContent(Class[] classes) throws IOException {
         System.out.println("14");
-        return super.getContent(classes); //To change body of generated methods, choose Tools | Templates.
+        return super.getContent(classes);
     }
 
+    //Not implemented yet
     @Override
     public Object getContent() throws IOException {
         System.out.println("15");
-        return super.getContent(); //To change body of generated methods, choose Tools | Templates.
+        return super.getContent();
     }
 
     @Override
     public InputStream getInputStream() throws IOException {
-        System.out.println("16");
-        return new RPCSlaveInputStream(blockingStub.getInputStream(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue());
+        long idInput = blockingStub.getInputStream(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue();
+        if (idInput < 0) {
+            throw new IOException();
+        }
+        return new RPCSlaveInputStream(idInput);
     }
 
     @Override
     public OutputStream getOutputStream() throws IOException {
-        System.out.println("17");
-        return super.getOutputStream(); //To change body of generated methods, choose Tools | Templates.
+        long idOutput = blockingStub.getOutputStream(javafxbrowser.rpc.Void.newBuilder().setConId(idCon).build()).getValue();
+        if (idOutput < 0) {
+            throw new IOException();
+        }
+        return new RPCSlaveOutputStream(idOutput);
     }
 
     public class RPCSlaveInputStream extends InputStream {
 
-        private long idInput;
+        private final long idInput;
 
         public RPCSlaveInputStream(long idInput) {
             this.idInput = idInput;
@@ -195,58 +206,120 @@ public class RPCURLConnectionSlave extends HttpURLConnection {
 
         @Override
         public int read() throws IOException {
-            System.out.println("en read");
-            return blockingStub.inputStreamRead(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getValue();
+            int answer = blockingStub.inputStreamRead(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getValue();
+            if (answer < -1) {
+                throw new IOException();
+            }
+            return answer;
         }
 
         @Override
         public boolean markSupported() {
-            System.out.println("en mark Supported");
             return blockingStub.inputStreamMarkSupported(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getValue();
         }
 
         @Override
         public synchronized void reset() throws IOException {
-            System.out.println("en reset");
-            blockingStub.inputStreamReset(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build());
+            if (blockingStub.inputStreamReset(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getConId() < 0) {
+                throw new IOException();
+            }
         }
 
         @Override
         public synchronized void mark(int readlimit) {
-            System.out.println("en mark");
-            blockingStub.inputStreamMark(javafxbrowser.rpc.Int.newBuilder().setConId(idInput).setValue(readlimit).build());
+            blockingStub.inputStreamMark(javafxbrowser.rpc.Int.newBuilder().setConId(idInput).setValue(readlimit).build()).getConId();
         }
 
         @Override
         public void close() throws IOException {
-            System.out.println("en close");
-            blockingStub.inputStreamClose(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build());
-            System.out.println("sali de close");
-            //super.close();
+            if (blockingStub.inputStreamClose(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getConId() < 0) {
+                throw new IOException();
+            }
         }
 
         @Override
         public int available() throws IOException {
-            System.out.println("en avaible");
-            return blockingStub.inputStreamAvailable(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getValue();
+            int answer = blockingStub.inputStreamAvailable(javafxbrowser.rpc.Void.newBuilder().setConId(idInput).build()).getValue();
+            if (answer < -1) {
+                throw new IOException();
+            }
+            return answer;
         }
 
         @Override
         public long skip(long n) throws IOException {
-            System.out.println("skip");
-            return blockingStub.inputStreamSkip(javafxbrowser.rpc.Long.newBuilder().setConId(idInput).setValue(n).build()).getValue();
+            long answer = blockingStub.inputStreamSkip(javafxbrowser.rpc.Long.newBuilder().setConId(idInput).setValue(n).build()).getValue();
+            if (answer < -1) {
+                throw new IOException();
+            }
+            return answer;
         }
 
         @Override
         public int read(byte[] b, int off, int len) throws IOException {
-            return blockingStub.inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset.newBuilder().setConId(idInput).setOffset(off).setLen(len).setArray(ByteString.copyFrom(b)).build()).getValue();
+            StreamRead answer = blockingStub.inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset.newBuilder().setConId(idInput).setOffset(off).setLen(len).setArray(ByteString.copyFrom(b)).build());
+            System.arraycopy(answer.getArray().toByteArray(), 0, b, 0, b.length);
+            if (answer.getAmount() < -1) {
+                throw new IOException();
+            }
+            return answer.getAmount();
         }
 
         @Override
         public int read(byte[] b) throws IOException {
-            return blockingStub.inputStreamReadArrayOff(javafxbrowser.rpc.ByteArrayOffset.newBuilder().setConId(idInput).setArray(ByteString.copyFrom(b)).build()).getValue();
+            StreamRead answer = blockingStub.inputStreamReadArray(javafxbrowser.rpc.ByteArray.newBuilder().setConId(idInput).setArray(ByteString.copyFrom(b)).build());
+            byte[] answerArray = answer.getArray().toByteArray();
+            System.arraycopy(answerArray, 0, b, 0, answerArray.length);
+            if (answer.getAmount() < -1) {
+                throw new IOException();
+            }
+            return answer.getAmount();
         }
 
+    }
+
+    public class RPCSlaveOutputStream extends OutputStream {
+
+        private final long idOutput;
+
+        public RPCSlaveOutputStream(long idOutput) {
+            this.idOutput = idOutput;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            if (blockingStub.outputStreamWrite(javafxbrowser.rpc.Int.newBuilder().setConId(idOutput).setValue(b).build()).getConId() < 0) {
+                throw new IOException();
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (blockingStub.outputStreamClose(javafxbrowser.rpc.Void.newBuilder().setConId(idOutput).build()).getConId() < 0) {
+                throw new IOException();
+            }
+        }
+
+        @Override
+        public void flush() throws IOException {
+            if (blockingStub.outputStreamFlush(javafxbrowser.rpc.Void.newBuilder().setConId(idOutput).build()).getConId() < 0) {
+                throw new IOException();
+            }
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            if (blockingStub.outputStreamWriteArrayOff(javafxbrowser.rpc.ByteArrayOffset.newBuilder().setConId(idOutput).setArray(ByteString.copyFrom(b)).setLen(len).setOffset(off).build()).getConId() < 0) {
+                throw new IOException();
+            }
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            if (blockingStub.outputStreamWriteArray(javafxbrowser.rpc.ByteArray.newBuilder().setConId(idOutput).setArray(ByteString.copyFrom(b)).build()).getConId() < 0) {
+                throw new IOException();
+            }
+        }
     }
 
 }
